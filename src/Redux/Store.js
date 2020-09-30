@@ -20,7 +20,7 @@ export const ConfigureStore = () => {
     persistCombineReducers(config, {
       notes: Notes,
     }),
-    applyMiddleware(thunk, logger)
+    applyMiddleware(thunk)
   );
 
   const persistor = persistStore(store);

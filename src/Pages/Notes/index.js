@@ -19,89 +19,35 @@ import {
   SCREEN_WIDTH,
 } from "../../Styles/index";
 import { useSelector, useDispatch } from "react-redux";
-import {
-  createNote,
-  editNote,
-  deleteNote,
-} from "../../Redux/Notes/ActionCreator";
+import { toggleLockNote, deleteNote } from "../../Redux/Notes/ActionCreator";
 import HTML from "react-native-render-html";
 import { useActionSheet } from "@expo/react-native-action-sheet";
+import Dilogue from "../../Components/Dilogue";
+import * as LocalAuthentication from "expo-local-authentication";
+import Constants from "expo-constants";
 
-const fakeDaya = [
-  {
-    title: "One note is here",
-    isLocked: true,
-    id: 1,
-    desc: "Hola this is one and also very good",
-  },
-  {
-    title: "One note is here",
-    isLocked: false,
-    id: 2,
-    desc: "Hola this is one and also very good",
-  },
-  {
-    title: "One note is here",
-    isLocked: false,
-    id: 3,
-    desc: "Hola this is one and also very good",
-  },
-  {
-    title: "One note is here",
-    isLocked: true,
-    id: 4,
-    desc: "Hola this is one and also very good",
-  },
-  {
-    title: "One note is here",
-    isLocked: false,
-    id: 5,
-    desc: "Hola this is one and also very good",
-  },
-  {
-    title: "One note is here",
-    isLocked: true,
-    id: 6,
-    desc: "Hola this is one and also very good",
-  },
-  {
-    title: "One note is here",
-    isLocked: true,
-    id: 7,
-    desc: "Hola this is one and also very good",
-  },
-  {
-    title: "One note is here",
-    isLocked: false,
-    id: 8,
-    desc: "Hola this is one and also very good",
-  },
-  {
-    title: "One note is here",
-    isLocked: false,
-    id: 9,
-    desc: "Hola this is one and also very good",
-  },
-  {
-    title: "One note is here",
-    isLocked: false,
-    id: 10,
-    desc: "Hola this is one and also very good",
-  },
-];
-
-function renderNote(item, index, props, showActionSheet, dispatch) {
+function renderNote(
+  item,
+  index,
+  props,
+  showActionSheet,
+  dispatch,
+  dilogueFuncs
+) {
   return (
     <TouchableOpacity
+      delayLongPress={250}
       onLongPress={() => {
-        openActionSheet(showActionSheet, index, dispatch, item.isLocked);
+        openActionSheet(showActionSheet, item.isLocked, dilogueFuncs, index);
       }}
       onPress={() => {
-        props.navigation.navigate("Editor", {
-          isNew: false,
-          data: item,
-          index,
-        });
+        item.isLocked
+          ? scanFingerPrint(props, item, index, true, dispatch)
+          : props.navigation.navigate("Editor", {
+              isNew: false,
+              data: item,
+              index,
+            });
       }}
       style={styles.noteCard}
     >
@@ -127,7 +73,7 @@ function renderNote(item, index, props, showActionSheet, dispatch) {
   );
 }
 
-function openActionSheet(showActionSheet, index, dispatch, isLocked) {
+function openActionSheet(showActionSheet, isLocked, dilogueFuncs, index) {
   // Same interface as https://facebook.github.io/react-native/docs/actionsheetios.html
 
   const options = ["Delete", isLocked ? "Unlock" : "Lock", "Cancel"];
@@ -143,10 +89,20 @@ function openActionSheet(showActionSheet, index, dispatch, isLocked) {
     (buttonIndex) => {
       switch (buttonIndex) {
         case 0:
-          dispatch(deleteNote(index));
+          dilogueFuncs.setShowDilogue(true);
+          dilogueFuncs.setDilogueLineOne("Delete note?");
+          dilogueFuncs.setDilogueActionBtn("Delete");
+          dilogueFuncs.setDilogueBackColor(backColorTwo);
+          dilogueFuncs.setCurrentNoteIndex(index);
           break;
         case 1:
-          console.log("Locking this note");
+          dilogueFuncs.setShowDilogue(true);
+          dilogueFuncs.setDilogueLineOne(
+            isLocked ? "Unlock note?" : "Lock Note?"
+          );
+          dilogueFuncs.setDilogueActionBtn(isLocked ? "Unlock" : "Lock");
+          dilogueFuncs.setDilogueBackColor(backColorTwo);
+          dilogueFuncs.setCurrentNoteIndex(index);
           break;
       }
       // Do something here depending on the button index selected
@@ -154,9 +110,34 @@ function openActionSheet(showActionSheet, index, dispatch, isLocked) {
   );
 }
 
+const scanFingerPrint = async (props, item, index, mode, dispatch) => {
+  try {
+    let results = await LocalAuthentication.authenticateAsync();
+    if (results.success) {
+      mode
+        ? props.navigation.navigate("Editor", {
+            isNew: false,
+            data: item,
+            index,
+          })
+        : dispatch(toggleLockNote(index));
+    } else {
+      // console.log("Not Authenticated");
+    }
+  } catch (e) {
+    console.log(e);
+  }
+};
+
 export default function Notes(props) {
   // local state
-  const [showSelector, setShowSelector] = useState(false);
+  const [showDilogue, setShowDilogue] = useState(false);
+  const [dilogueLineOne, setDilogueLineOne] = useState("");
+  const [dilogueLineTwo, setDilogueLineTwo] = useState("");
+  const [dilogueBackColor, setDilogueBackColor] = useState("#fff");
+  const [dilogueActionBtn, setDilogueActionBtn] = useState("");
+  const [currentNoteIndex, setCurrentNoteIndex] = useState(-1);
+  const [currentNote, setCurrentNote] = useState(null);
   // redux state
   const notes = useSelector((state) => state.notes);
   // redux action dispatcher
@@ -173,26 +154,9 @@ export default function Notes(props) {
         title="Notes"
       />
       {notes.data.length < 1 ? (
-        <View
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-        >
-          <Text
-            style={{
-              fontSize: 25,
-              fontWeight: "700",
-              color: lightModeTextLightColor,
-              letterSpacing: 4,
-            }}
-          >
-            Create note
-          </Text>
-          <Text
-            style={{
-              fontSize: 15,
-              fontWeight: "700",
-              color: lightModeTextLightColor,
-            }}
-          >
+        <View style={styles.createNoteView}>
+          <Text style={styles.createNote}>Create note</Text>
+          <Text style={styles.createNoteTxt}>
             You have not created any notes, create one
           </Text>
         </View>
@@ -202,7 +166,22 @@ export default function Notes(props) {
           data={notes.data}
           keyExtractor={(item, index) => index.toString()}
           renderItem={({ item, index }) =>
-            renderNote(item, index, props, showActionSheetWithOptions, dispatch)
+            renderNote(
+              item,
+              index,
+              props,
+              showActionSheetWithOptions,
+              dispatch,
+              {
+                setShowDilogue,
+                setDilogueLineOne,
+                setDilogueLineTwo,
+                setDilogueActionBtn,
+                setDilogueBackColor,
+                setCurrentNoteIndex,
+                setCurrentNote,
+              }
+            )
           }
         />
       )}
@@ -218,11 +197,83 @@ export default function Notes(props) {
       >
         <Feather name="plus" size={25} color={backColorTwo} />
       </TouchableOpacity>
+      <Dilogue
+        dilogueVisible={showDilogue}
+        closeDilogue={() => {
+          setShowDilogue(false);
+        }}
+        cancellable={true}
+        dilogueBackground={dilogueBackColor}
+      >
+        <View>
+          <Text style={styles.dilogueHeader}>{dilogueLineOne}</Text>
+          <Text style={styles.dilogueTxt}>{dilogueLineTwo}</Text>
+          <View style={styles.dilogueBtnsView}>
+            <TouchableOpacity
+              onPress={() => {
+                setShowDilogue(false);
+              }}
+            >
+              <Text style={styles.dilogueBtn}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                switch (dilogueActionBtn) {
+                  case "Lock":
+                    dispatch(toggleLockNote(currentNoteIndex));
+                    setShowDilogue(false);
+                    break;
+
+                  case "Unlock":
+                    console.log("Unlocking");
+                    scanFingerPrint(
+                      props,
+                      currentNote,
+                      currentNoteIndex,
+                      false,
+                      dispatch
+                    );
+                    // dispatch(toggleLockNote(currentNoteIndex));
+                    setShowDilogue(false);
+                    break;
+
+                  case "Delete":
+                    dispatch(deleteNote(currentNoteIndex));
+                    setShowDilogue(false);
+                    break;
+                }
+              }}
+            >
+              <Text style={styles.dilogueBtn}>{dilogueActionBtn}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Dilogue>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  createNoteView: { flex: 1, justifyContent: "center", alignItems: "center" },
+  createNote: {
+    fontSize: 25,
+    fontWeight: "700",
+    color: lightModeTextLightColor,
+    letterSpacing: 4,
+  },
+  createNoteTxt: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: lightModeTextLightColor,
+  },
+  dilogueHeader: { fontSize: 17, fontWeight: "700" },
+  dilogueTxt: { fontSize: 14, color: lightModeTextLightColor },
+  dilogueBtnsView: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginTop: 20,
+  },
+  dilogueBtn: { fontSize: 16, fontWeight: "700", color: primaryColor },
   noteCard: {
     backgroundColor: backColorTwo,
     marginBottom: 18,

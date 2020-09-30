@@ -26,3 +26,12 @@ const deleteOneNote = (index) => ({
   type: ActionTypes.DELETE_NOTE,
   payload: index,
 });
+
+export const toggleLockNote = (index) => (dispatch) => {
+  dispatch(toggleLockOneNote(index));
+};
+
+const toggleLockOneNote = (index) => ({
+  type: ActionTypes.TOGGLE_LOCK_NOTE,
+  payload: index,
+});

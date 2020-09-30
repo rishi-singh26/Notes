@@ -47,6 +47,22 @@ export const Notes = (
         errMess: null,
         deleted: [...state.deleted, deletedItem],
       };
+
+    case ActionTypes.TOGGLE_LOCK_NOTE:
+      let currentAllNotes = state.data;
+
+      const noteToBeLocked = currentAllNotes[action.payload];
+      noteToBeLocked.isLocked = !noteToBeLocked.isLocked;
+
+      currentAllNotes.splice(action.payload, 1, noteToBeLocked);
+      return {
+        ...state,
+        data: currentAllNotes,
+        isLoading: false,
+        errMess: null,
+        deleted: state.deleted,
+      };
+
     default:
       return state;
   }

@@ -176,7 +176,8 @@ class Editor extends React.Component {
       createdDate: currentDate.toDateString(),
       createdTimeMiliSec: currentDate.getTime(),
       isLocked: false,
-      password: "",
+      categoryName: "uncategorised",
+      categoryId: 0,
     };
 
     // const date = new Date(item.updateDate.seconds * 1000).toDateString();
