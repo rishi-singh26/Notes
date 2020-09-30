@@ -27,12 +27,23 @@ import {
   lightModeTextHardColor,
   lightModeTextLightColor,
 } from "../../Styles";
-
-const initHTML = ``;
+import { createNote, editNote } from "../../Redux/Notes/ActionCreator";
+import { connect } from "react-redux";
 
 const { strikeThrough, video, html, emoji } = Assets;
 
-export default class Editor extends React.Component {
+const mapStateToProps = (state) => {
+  return {
+    notes: state.notes,
+  };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+  createNote: (note) => dispatch(createNote(note)),
+  editNote: (note, index) => dispatch(editNote(note, index)),
+});
+
+class Editor extends React.Component {
   richText = React.createRef();
   linkModal = React.createRef();
 
@@ -42,12 +53,16 @@ export default class Editor extends React.Component {
     const theme = Appearance.getColorScheme();
     const contentStyle = this.createContentStyle(theme);
 
+    this.initHTML = ``;
+
     this.state = {
       theme: theme,
       contentStyle,
       emojiVisible: false,
       disabled: false,
       image: null,
+      title: "",
+      changeMade: false,
     };
   }
 
@@ -78,6 +93,15 @@ export default class Editor extends React.Component {
   componentDidMount() {
     Appearance.addChangeListener(this.themeChange);
     Keyboard.addListener("keyboardDidShow", this.onKeyBoard);
+
+    const { isNew, data, index } = this.props.route.params;
+    // console.log({ isNew, data });
+    if (isNew) {
+      this.setState({ disabled: false });
+    } else {
+      this.setState({ disabled: true, title: data.title });
+      this.initHTML = data.content;
+    }
   }
 
   componentWillUnmount() {
@@ -91,6 +115,8 @@ export default class Editor extends React.Component {
   };
 
   handleChange = (html) => {
+    const { isNew, data, index } = this.props.route.params;
+    this.setState({ changeMade: isNew ? true : html != data.content });
     // console.log("editor data:", html);
   };
 
@@ -136,10 +162,27 @@ export default class Editor extends React.Component {
   };
 
   save = async () => {
+    const { isNew, data, index } = this.props.route.params;
+
     // Get the data here and call the interface to save the data
     let html = await this.richText.current?.getContentHtml();
-    // console.log(html);
-    alert(html);
+
+    const currentDate = new Date();
+
+    const note = {
+      title: this.state.title,
+      content: html,
+      desc: "",
+      createdDate: currentDate.toDateString(),
+      createdTimeMiliSec: currentDate.getTime(),
+      isLocked: false,
+      password: "",
+    };
+
+    // const date = new Date(item.updateDate.seconds * 1000).toDateString();
+    isNew ? this.props.createNote(note) : this.props.editNote(note, index);
+    this.setState({ disabled: !this.state.disabled, changeMade: false });
+    console.log(note);
   };
 
   createContentStyle = (theme) => {
@@ -169,8 +212,15 @@ export default class Editor extends React.Component {
   };
 
   render() {
-    let that = this;
-    const { contentStyle, theme, emojiVisible, disabled } = this.state;
+    const {
+      contentStyle,
+      theme,
+      emojiVisible,
+      disabled,
+      title,
+      changeMade,
+    } = this.state;
+    const { isNew, data, index } = this.props.route.params;
     const { backgroundColor, color, placeholderColor } = contentStyle;
     const themeBg = { backgroundColor };
     return (
@@ -199,16 +249,18 @@ export default class Editor extends React.Component {
               }}
             >
               <Text style={styles.topBtnTxt}>
-                {disabled ? "Resume" : "Pause"}
+                {disabled ? "Edit" : "Pause"}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={{ paddingHorizontal: 10 }}
               onPress={() => {
-                this.save();
+                isNew ? this.save() : changeMade ? this.save() : null;
               }}
             >
-              <Text style={styles.topBtnTxt}>{"Save"}</Text>
+              <Text style={styles.topBtnTxt}>
+                {changeMade ? "Save" : "Saved"}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -218,6 +270,13 @@ export default class Editor extends React.Component {
             editable={!disabled}
             placeholderTextColor={placeholderColor}
             placeholder={"Title"}
+            value={title}
+            onChangeText={(text) => {
+              this.setState({
+                title: text,
+                changeMade: isNew ? true : data.title != text,
+              });
+            }}
           />
           <RichEditor
             initialFocus={false}
@@ -227,7 +286,7 @@ export default class Editor extends React.Component {
             ref={this.richText}
             style={[{ minHeight: 300, flex: 1 }, themeBg]}
             placeholder={"Note"}
-            initialContentHTML={initHTML}
+            initialContentHTML={this.initHTML}
             editorInitializedCallback={this.editorInitializedCallback}
             onChange={this.handleChange}
             onHeightChange={this.handleHeightChange}
@@ -287,6 +346,8 @@ export default class Editor extends React.Component {
   }
 }
 
+export default connect(mapStateToProps, mapDispatchToProps)(Editor);
+
 const styles = StyleSheet.create({
   topBtnsView: {
     flexDirection: "row",
@@ -307,6 +368,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 18,
     fontWeight: "700",
+    color: lightModeTextHardColor,
   },
   h1Text: {
     textAlign: "center",

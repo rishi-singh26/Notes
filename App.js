@@ -1,17 +1,20 @@
-import { StatusBar } from "expo-status-bar";
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
 import Navigator from "./src/Navigator/index";
+import { Provider } from "react-redux";
+import { ConfigureStore } from "./src/Redux/Store";
+import { PersistGate } from "redux-persist/integration/react";
+import { ActionSheetProvider } from "@expo/react-native-action-sheet";
+
+const { persistor, store } = ConfigureStore();
 
 export default function App() {
-  return <Navigator />;
+  return (
+    <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
+        <ActionSheetProvider>
+          <Navigator />
+        </ActionSheetProvider>
+      </PersistGate>
+    </Provider>
+  );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
