@@ -15,20 +15,25 @@ import {
 } from "../../Redux/Categories/ActionCreator";
 import { useSelector, useDispatch } from "react-redux";
 import { toast } from "../../Functions/index";
+import "react-native-get-random-values";
+import { v4 as uuidv4 } from "uuid";
 
 export default function CreateCategory({
+  title,
   showCategoryCreator,
   cancellable,
   closeCategoryCreator,
   categoryCreatorBackground,
+  categoryName,
+  setCategoryName,
+  categoryColor,
+  setCategoryColor,
+  editingCategoryIndex,
+  editingCategoryId,
+  edit,
 }) {
   //   global state
   const categories = useSelector((state) => state.categories);
-  // local state
-  const [categoryName, setCategoryName] = useState(
-    `Category ${categories.data.length + 1}`
-  );
-  const [categoryColor, setCategoryColor] = useState("");
   // redux action dispatcher
   const dispatch = useDispatch();
 
@@ -40,7 +45,7 @@ export default function CreateCategory({
       dilogueBackground={categoryCreatorBackground}
     >
       <Text style={{ fontSize: 18, fontWeight: "700", paddingHorizontal: 10 }}>
-        Add Category
+        {title}
       </Text>
       <TextInput
         selectTextOnFocus={true}
@@ -72,14 +77,26 @@ export default function CreateCategory({
         <TouchableOpacity
           onPress={() => {
             if (categoryName != "" && categoryColor != "") {
-              dispatch(
-                createCategory({
-                  name: categoryName,
-                  id: categories.data.length,
-                  color: categoryColor,
-                  count: 0,
-                })
-              );
+              edit
+                ? dispatch(
+                    editCategory(
+                      {
+                        name: categoryName,
+                        id: editingCategoryId,
+                        color: categoryColor,
+                        count: 0,
+                      },
+                      editingCategoryIndex
+                    )
+                  )
+                : dispatch(
+                    createCategory({
+                      name: categoryName,
+                      id: uuidv4(),
+                      color: categoryColor,
+                      count: 0,
+                    })
+                  );
               closeCategoryCreator();
             } else {
               toast("Enter category and select category color");

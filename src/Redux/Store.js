@@ -7,19 +7,21 @@ import AsyncStorage from "@react-native-community/async-storage";
 import { Notes } from "./Notes/Notes";
 import { Categories } from "./Categories/Categories";
 import { SortNotes } from "./SortNotes/SortNptes";
+import { DrawerSwipe } from "./DrawerSwipe/DrawerSwipe";
 
 export const ConfigureStore = () => {
   const config = {
     key: "root",
     storage: AsyncStorage,
     debug: true,
-    blacklist: ["sortNotes"],
+    blacklist: ["sortNotes", "drawerSwipe"],
   };
   const store = createStore(
     persistCombineReducers(config, {
       notes: Notes,
       categories: Categories,
       sortNotes: SortNotes,
+      drawerSwipe: DrawerSwipe,
     }),
     applyMiddleware(thunk, logger)
   );

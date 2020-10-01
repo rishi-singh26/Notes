@@ -29,9 +29,13 @@ import {
   primaryColor,
 } from "../../Styles";
 import { createNote, editNote } from "../../Redux/Notes/ActionCreator";
+import {
+  startDrawerSwipe,
+  stopDrawerSwipe,
+} from "../../Redux/DrawerSwipe/ActionCreator";
 import { connect } from "react-redux";
 import SelectCategorie from "../Categories/SelectCategory";
-import { findCategoryColorUsingId, toast } from "../../Functions/index";
+import { findCategoryColorAndNameUsingId, toast } from "../../Functions/index";
 
 const { strikeThrough, video, html, emoji } = Assets;
 
@@ -45,6 +49,8 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => ({
   createNote: (note) => dispatch(createNote(note)),
   editNote: (note, index) => dispatch(editNote(note, index)),
+  startDrawerSwipe: () => dispatch(startDrawerSwipe()),
+  stopDrawerSwipe: () => dispatch(stopDrawerSwipe()),
 });
 
 class Editor extends React.Component {
@@ -53,25 +59,33 @@ class Editor extends React.Component {
 
   constructor(props) {
     super(props);
-    const { isNew, data, index } = this.props.route.params;
+    const { isNew, data, index, categoryId } = this.props.route.params;
     let disabled = false;
     let title = ``;
     let initialHTML = ``;
-    let categoryName = `Uncategorised`;
-    let categoryId = 0;
+    let catId = 0;
+    let catName = "";
     let categoryColor = "";
     if (isNew) {
+      const catData = findCategoryColorAndNameUsingId(
+        props.categories,
+        categoryId
+      );
       disabled = false;
+      catId = categoryId;
+      catName = catData.name;
+      categoryColor = catData.color;
     } else {
-      disabled = true;
-      title = data.title;
-      initialHTML = data.content;
-      categoryName = data.categoryName;
-      categoryId = data.categoryId;
-      categoryColor = findCategoryColorUsingId(
+      const catData = findCategoryColorAndNameUsingId(
         props.categories,
         data.categoryId
       );
+      disabled = true;
+      title = data.title;
+      initialHTML = data.content;
+      catId = data.categoryId;
+      catName = catData.name;
+      categoryColor = catData.color;
     }
     const theme = Appearance.getColorScheme();
     const contentStyle = this.createContentStyle(theme);
@@ -81,8 +95,8 @@ class Editor extends React.Component {
       contentStyle,
       disabled,
       title,
-      categoryName,
-      categoryId,
+      categoryName: catName,
+      categoryId: catId,
       categoryColor,
       emojiVisible: false,
       changeMade: false,
@@ -94,11 +108,15 @@ class Editor extends React.Component {
   componentDidMount() {
     Appearance.addChangeListener(this.themeChange);
     Keyboard.addListener("keyboardDidShow", this.onKeyBoard);
+    // stop drawer swipe
+    this.props.stopDrawerSwipe();
   }
 
   componentWillUnmount() {
     Appearance.removeChangeListener(this.themeChange);
     Keyboard.removeListener("keyboardDidShow", this.onKeyBoard);
+    // start drawer swipe
+    this.props.startDrawerSwipe();
   }
 
   onKeyBoard = () => {
@@ -195,7 +213,6 @@ class Editor extends React.Component {
       createdDate: currentDate.toDateString(),
       createdTimeMiliSec: currentDate.getTime(),
       isLocked: isNew ? false : data.isLocked,
-      categoryName: this.state.categoryName,
       categoryId: this.state.categoryId,
       updatedDate: currentDate.toDateString(),
       updatedTimeMiliSec: currentDate.getTime(),

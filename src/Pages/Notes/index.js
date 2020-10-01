@@ -1,5 +1,5 @@
 import { Feather } from "@expo/vector-icons";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -24,7 +24,7 @@ import HTML from "react-native-render-html";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import Dilogue from "../../Components/Dilogue";
 import * as LocalAuthentication from "expo-local-authentication";
-import Constants from "expo-constants";
+import { resetSort } from "../../Redux/SortNotes/ActionCreator";
 
 function renderNote(
   item,
@@ -47,7 +47,9 @@ function renderNote(
               isNew: false,
               data: item,
               index,
+              categoryId: null,
             });
+        dispatch(resetSort());
       }}
       style={styles.noteCard}
     >
@@ -107,13 +109,17 @@ const scanFingerPrint = async (props, item, index, mode, dispatch) => {
   try {
     let results = await LocalAuthentication.authenticateAsync();
     if (results.success) {
-      mode
-        ? props.navigation.navigate("Editor", {
-            isNew: false,
-            data: item,
-            index,
-          })
-        : dispatch(toggleLockNote(index));
+      if (mode) {
+        props.navigation.navigate("Editor", {
+          isNew: false,
+          data: item,
+          index,
+          categoryId: null,
+        });
+        dispatch(resetSort());
+      } else {
+        dispatch(toggleLockNote(index));
+      }
     } else {
       // console.log("Not Authenticated");
     }
@@ -123,6 +129,9 @@ const scanFingerPrint = async (props, item, index, mode, dispatch) => {
 };
 
 export default function Notes(props) {
+  // redux state
+  const notes = useSelector((state) => state.notes);
+  const sortingData = useSelector((state) => state.sortNotes);
   // local state
   const [showDilogue, setShowDilogue] = useState(false);
   const [dilogueLineOne, setDilogueLineOne] = useState("");
@@ -131,20 +140,29 @@ export default function Notes(props) {
   const [dilogueActionBtn, setDilogueActionBtn] = useState("");
   const [currentNoteIndex, setCurrentNoteIndex] = useState(-1);
   const [currentNote, setCurrentNote] = useState(null);
-  // redux state
-  const notes = useSelector((state) => state.notes);
-  const sortingData = useSelector((state) => state.sortNotes);
+  // const [sortedNotes, setSortedNotes] = useState(notes.data);
 
-  let sortedData = notes;
+  const sortedNotes =
+    sortingData.id == -11
+      ? notes.data
+      : notes.data.filter((it) => {
+          return it.categoryId == sortingData.id;
+        });
 
-  sortingData.id == -11
-    ? null
-    : (sortedData = notes.data.filter((it) => it.categoryId != sortingData.id));
-  console.log("SORTED Data is here : ", sortedData);
   // redux action dispatcher
   const dispatch = useDispatch();
   // actionsheet hook
   const { showActionSheetWithOptions } = useActionSheet();
+
+  // useEffect(() => {
+  //   setSortedNotes(
+  //     sortingData.id == -11
+  //       ? notes.data
+  //       : notes.data.filter((it) => {
+  //           return it.categoryId == sortingData.id;
+  //         })
+  //   );
+  // }, [notes]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: backColor }}>
@@ -154,17 +172,17 @@ export default function Notes(props) {
         }}
         title={sortingData.name}
       />
-      {notes.data.length < 1 ? (
+      {sortedNotes.length < 1 ? (
         <View style={styles.createNoteView}>
-          <Text style={styles.createNote}>Create note</Text>
-          <Text style={styles.createNoteTxt}>
+          <Text style={styles.createNote}>No Notes</Text>
+          {/* <Text style={styles.createNoteTxt}>
             You have not created any notes, create one
-          </Text>
+          </Text> */}
         </View>
       ) : (
         <FlatList
           style={{ backgroundColor: backColor, paddingTop: 10 }}
-          data={notes.data}
+          data={sortedNotes}
           keyExtractor={(item, index) => index.toString()}
           renderItem={({ item, index }) =>
             renderNote(
@@ -193,7 +211,9 @@ export default function Notes(props) {
             isNew: true,
             data: null,
             index: null,
+            categoryId: sortingData.id == -11 ? 0 : sortingData.id,
           });
+          dispatch(resetSort());
         }}
       >
         <Feather name="plus" size={25} color={backColorTwo} />

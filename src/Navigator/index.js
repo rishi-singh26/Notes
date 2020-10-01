@@ -3,34 +3,28 @@ import { Button, View, StatusBar } from "react-native";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { NavigationContainer } from "@react-navigation/native";
 import MyStack from "./Stack";
-import Editor from "../Pages/Editor/index";
 import { backColor } from "../Styles";
 import CustomDrawerContent from "./CustomDrawerContent";
+import { useSelector, useDispatch } from "react-redux";
 
 const Drawer = createDrawerNavigator();
 
 export default function Navigator() {
+  const drawerSwipe = useSelector((state) => state.drawerSwipe);
   return (
     <NavigationContainer>
       <StatusBar barStyle="dark-content" backgroundColor={backColor} />
       <Drawer.Navigator
+        drawerType="slide"
         drawerStyle={{ width: "75%" }}
         initialRouteName="MyStack"
         drawerContent={(props) => <CustomDrawerContent {...props} />}
         drawerContentOptions={{
           activeTintColor: "#000",
         }}
+        screenOptions={{ swipeEnabled: drawerSwipe.shouldSwipe }}
       >
         <Drawer.Screen name="MyStack" component={MyStack} />
-        <Drawer.Screen
-          options={({ route, navigation }) => {
-            return {
-              swipeEnabled: false,
-            };
-          }}
-          name="Editor"
-          component={Editor}
-        />
       </Drawer.Navigator>
     </NavigationContainer>
   );

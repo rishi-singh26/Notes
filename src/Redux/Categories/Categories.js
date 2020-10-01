@@ -2,14 +2,7 @@ import * as ActionTypes from "./ActionTypes";
 
 export const Categories = (
   state = {
-    data: [
-      {
-        name: "Uncategorised",
-        id: 0,
-        color: "#888",
-        count: 0,
-      },
-    ],
+    data: [],
     isLoading: false,
     errMess: null,
     deleted: [],
@@ -49,7 +42,7 @@ export const Categories = (
       currentCategoriesToBeDeleted.splice(action.payload, 1);
       return {
         ...state,
-        data: currentNotesToBeDeleted,
+        data: currentCategoriesToBeDeleted,
         isLoading: false,
         errMess: null,
         deleted: [...state.deleted, deletedCategory],

@@ -18,8 +18,6 @@ import { Feather } from "@expo/vector-icons";
 import CreateCategory from "./CreateCategory";
 
 export default function RenderCategories({ data, onPress, onLongPress }) {
-  const [categoryCreatorVisible, setCategoryCreatorVisible] = useState(false);
-
   return (
     <View>
       <FlatList
@@ -39,10 +37,10 @@ export default function RenderCategories({ data, onPress, onLongPress }) {
                 styles.category,
               ]}
               onPress={() => {
-                onPress(item.name, item.id, item.color);
+                onPress(item.name, item.id, item.color, index, item.count);
               }}
               onLongPress={() => {
-                onLongPress();
+                onLongPress(item.name, item.id, item.color, index, item.count);
               }}
             >
               <View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -57,28 +55,6 @@ export default function RenderCategories({ data, onPress, onLongPress }) {
           );
         }}
       />
-      <TouchableOpacity
-        onPress={() => {
-          setCategoryCreatorVisible(true);
-        }}
-        style={styles.createCategoryBtn}
-      >
-        <Feather
-          name="plus"
-          size={23}
-          color={green}
-          style={{ marginHorizontal: 10 }}
-        />
-        <Text style={styles.createCategoryTxt}>Add Category</Text>
-      </TouchableOpacity>
-      <CreateCategory
-        showCategoryCreator={categoryCreatorVisible}
-        cancellable={true}
-        categoryCreatorBackground={backColorTwo}
-        closeCategoryCreator={() => {
-          setCategoryCreatorVisible(false);
-        }}
-      />
     </View>
   );
 }
@@ -91,14 +67,6 @@ const styles = StyleSheet.create({
     // borderBottomColor: lightModeBtnBackColor,
     // borderBottomWidth: 0.2,
     marginTop: 1,
+    marginHorizontal: 10,
   },
-  createCategoryBtn: {
-    paddingHorizontal: 10,
-    paddingVertical: 15,
-    backgroundColor: backColorTwo,
-    borderRadius: 20,
-    marginVertical: 10,
-    flexDirection: "row",
-  },
-  createCategoryTxt: { fontSize: 17 },
 });
