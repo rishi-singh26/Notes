@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#0003",
   },
   container: {
-    marginHorizontal: 20,
+    marginHorizontal: 10,
     padding: 20,
     borderRadius: 20,
   },

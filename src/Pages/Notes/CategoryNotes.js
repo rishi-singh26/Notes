@@ -122,7 +122,7 @@ const scanFingerPrint = async (props, item, index, mode, dispatch) => {
   }
 };
 
-export default function Notes(props) {
+export default function CategoryNotes(props) {
   // local state
   const [showDilogue, setShowDilogue] = useState(false);
   const [dilogueLineOne, setDilogueLineOne] = useState("");
@@ -133,14 +133,11 @@ export default function Notes(props) {
   const [currentNote, setCurrentNote] = useState(null);
   // redux state
   const notes = useSelector((state) => state.notes);
-  const sortingData = useSelector((state) => state.sortNotes);
 
-  let sortedData = notes;
-
-  sortingData.id == -11
-    ? null
-    : (sortedData = notes.data.filter((it) => it.categoryId != sortingData.id));
-  console.log("SORTED Data is here : ", sortedData);
+  const sortedNotes = notes.data.filter(
+    (it) => (it.categoryId = props.route.params?.catId)
+  );
+  console.log("Sorted notes", sortedNotes);
   // redux action dispatcher
   const dispatch = useDispatch();
   // actionsheet hook
@@ -152,7 +149,7 @@ export default function Notes(props) {
         menuBtnPress={() => {
           props.navigation.toggleDrawer();
         }}
-        title={sortingData.name}
+        title="Notes"
       />
       {notes.data.length < 1 ? (
         <View style={styles.createNoteView}>

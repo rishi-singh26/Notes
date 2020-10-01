@@ -3,6 +3,7 @@ import { Button, View, StatusBar } from "react-native";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { NavigationContainer } from "@react-navigation/native";
 import MyStack from "./Stack";
+import Editor from "../Pages/Editor/index";
 import { backColor } from "../Styles";
 import CustomDrawerContent from "./CustomDrawerContent";
 
@@ -21,6 +22,15 @@ export default function Navigator() {
         }}
       >
         <Drawer.Screen name="MyStack" component={MyStack} />
+        <Drawer.Screen
+          options={({ route, navigation }) => {
+            return {
+              swipeEnabled: false,
+            };
+          }}
+          name="Editor"
+          component={Editor}
+        />
       </Drawer.Navigator>
     </NavigationContainer>
   );

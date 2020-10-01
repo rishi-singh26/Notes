@@ -26,15 +26,19 @@ import {
   backColor,
   lightModeTextHardColor,
   lightModeTextLightColor,
+  primaryColor,
 } from "../../Styles";
 import { createNote, editNote } from "../../Redux/Notes/ActionCreator";
 import { connect } from "react-redux";
+import SelectCategorie from "../Categories/SelectCategory";
+import { findCategoryColorUsingId, toast } from "../../Functions/index";
 
 const { strikeThrough, video, html, emoji } = Assets;
 
 const mapStateToProps = (state) => {
   return {
     notes: state.notes,
+    categories: state.categories,
   };
 };
 
@@ -49,22 +53,58 @@ class Editor extends React.Component {
 
   constructor(props) {
     super(props);
-    // const theme = props.theme || Appearance.getColorScheme();
+    const { isNew, data, index } = this.props.route.params;
+    let disabled = false;
+    let title = ``;
+    let initialHTML = ``;
+    let categoryName = `Uncategorised`;
+    let categoryId = 0;
+    let categoryColor = "";
+    if (isNew) {
+      disabled = false;
+    } else {
+      disabled = true;
+      title = data.title;
+      initialHTML = data.content;
+      categoryName = data.categoryName;
+      categoryId = data.categoryId;
+      categoryColor = findCategoryColorUsingId(
+        props.categories,
+        data.categoryId
+      );
+    }
     const theme = Appearance.getColorScheme();
     const contentStyle = this.createContentStyle(theme);
-
-    this.initHTML = ``;
-
+    this.initHTML = initialHTML;
     this.state = {
-      theme: theme,
+      theme,
       contentStyle,
+      disabled,
+      title,
+      categoryName,
+      categoryId,
+      categoryColor,
       emojiVisible: false,
-      disabled: false,
-      image: null,
-      title: "",
       changeMade: false,
+      image: null,
+      selectCategoryModalVisible: false,
     };
   }
+
+  componentDidMount() {
+    Appearance.addChangeListener(this.themeChange);
+    Keyboard.addListener("keyboardDidShow", this.onKeyBoard);
+  }
+
+  componentWillUnmount() {
+    Appearance.removeChangeListener(this.themeChange);
+    Keyboard.removeListener("keyboardDidShow", this.onKeyBoard);
+  }
+
+  onKeyBoard = () => {
+    // TextInput.State.currentlyFocusedField() &&
+    this.setState({ emojiVisible: false });
+  };
 
   getPermission = async () => {
     if (Platform.OS !== "web") {
@@ -90,34 +130,9 @@ class Editor extends React.Component {
     }
   };
 
-  componentDidMount() {
-    Appearance.addChangeListener(this.themeChange);
-    Keyboard.addListener("keyboardDidShow", this.onKeyBoard);
-
-    const { isNew, data, index } = this.props.route.params;
-    // console.log({ isNew, data });
-    if (isNew) {
-      this.setState({ disabled: false });
-    } else {
-      this.setState({ disabled: true, title: data.title });
-      this.initHTML = data.content;
-    }
-  }
-
-  componentWillUnmount() {
-    Appearance.removeChangeListener(this.themeChange);
-    Keyboard.removeListener("keyboardDidShow", this.onKeyBoard);
-  }
-
-  onKeyBoard = () => {
-    // TextInput.State.currentlyFocusedField() &&
-    this.setState({ emojiVisible: false });
-  };
-
   handleChange = (html) => {
     const { isNew, data, index } = this.props.route.params;
     this.setState({ changeMade: isNew ? true : html != data.content });
-    // console.log("editor data:", html);
   };
 
   handleHeightChange = (height) => {
@@ -167,6 +182,10 @@ class Editor extends React.Component {
     // Get the data here and call the interface to save the data
     let html = await this.richText.current?.getContentHtml();
 
+    if (isNew && html == "" && this.state.title == "") {
+      toast("Nothing to save!");
+      return;
+    }
     const currentDate = new Date();
 
     const note = {
@@ -175,9 +194,11 @@ class Editor extends React.Component {
       desc: "",
       createdDate: currentDate.toDateString(),
       createdTimeMiliSec: currentDate.getTime(),
-      isLocked: false,
-      categoryName: "uncategorised",
-      categoryId: 0,
+      isLocked: isNew ? false : data.isLocked,
+      categoryName: this.state.categoryName,
+      categoryId: this.state.categoryId,
+      updatedDate: currentDate.toDateString(),
+      updatedTimeMiliSec: currentDate.getTime(),
     };
 
     // const date = new Date(item.updateDate.seconds * 1000).toDateString();
@@ -216,10 +237,13 @@ class Editor extends React.Component {
     const {
       contentStyle,
       theme,
-      emojiVisible,
       disabled,
       title,
       changeMade,
+      categoryName,
+      categoryId,
+      categoryColor,
+      selectCategoryModalVisible,
     } = this.state;
     const { isNew, data, index } = this.props.route.params;
     const { backgroundColor, color, placeholderColor } = contentStyle;
@@ -260,12 +284,60 @@ class Editor extends React.Component {
               }}
             >
               <Text style={styles.topBtnTxt}>
-                {changeMade ? "Save" : "Saved"}
+                {changeMade ? "Save" : isNew ? "Save" : "Saved"}
               </Text>
             </TouchableOpacity>
           </View>
         </View>
         <ScrollView keyboardDismissMode={"none"}>
+          {disabled ? (
+            <View
+              style={[
+                styles.categoryView,
+                {
+                  borderColor: categoryId
+                    ? categoryColor
+                    : lightModeTextLightColor,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.categoryTxt,
+                  {
+                    color: categoryId ? categoryColor : lightModeTextLightColor,
+                  },
+                ]}
+              >
+                {categoryName}
+              </Text>
+            </View>
+          ) : (
+            <TouchableOpacity
+              onPress={() => {
+                this.setState({ selectCategoryModalVisible: true });
+              }}
+              style={[
+                styles.categoryView,
+                {
+                  borderColor: categoryId
+                    ? categoryColor
+                    : lightModeTextLightColor,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.categoryTxt,
+                  {
+                    color: categoryId ? categoryColor : lightModeTextLightColor,
+                  },
+                ]}
+              >
+                {categoryName}
+              </Text>
+            </TouchableOpacity>
+          )}
           <TextInput
             style={styles.titleInput}
             editable={!disabled}
@@ -342,6 +414,20 @@ class Editor extends React.Component {
           />
           {/* {emojiVisible && <EmojiView onSelect={this.insertEmoji} />} */}
         </KeyboardAvoidingView>
+        <SelectCategorie
+          categoriesSelectorVisible={selectCategoryModalVisible}
+          closeCategorySelector={() => {
+            this.setState({ selectCategoryModalVisible: false });
+          }}
+          selectCategory={(name, id, color) => {
+            this.setState({
+              categoryName: name,
+              categoryId: id,
+              categoryColor: color,
+              changeMade: categoryId === id ? false : true,
+            });
+          }}
+        />
       </SafeAreaView>
     );
   }
@@ -350,6 +436,19 @@ class Editor extends React.Component {
 export default connect(mapStateToProps, mapDispatchToProps)(Editor);
 
 const styles = StyleSheet.create({
+  categoryView: {
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderWidth: 1,
+    borderRadius: 20,
+    alignSelf: "flex-start",
+    marginHorizontal: 10,
+    marginVertical: 3,
+  },
+  categoryTxt: {
+    fontSize: 12,
+    fontWeight: "700",
+  },
   topBtnsView: {
     flexDirection: "row",
     paddingHorizontal: 20,

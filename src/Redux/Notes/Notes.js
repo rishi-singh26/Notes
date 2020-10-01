@@ -20,10 +20,13 @@ export const Notes = (
       };
 
     case ActionTypes.EDIT_NOTE:
+      let currentNotesToBeEdited = state.data;
+
       const index = action.payload.index;
       const note = action.payload.note;
-
-      let currentNotesToBeEdited = state.data;
+      let noteToBeEdited = currentNotesToBeEdited[index];
+      note.createdDate = noteToBeEdited.createdDate;
+      note.createdTimeMiliSec = noteToBeEdited.createdTimeMiliSec;
 
       currentNotesToBeEdited.splice(index, 1, note);
       return {
