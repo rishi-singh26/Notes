@@ -87,7 +87,8 @@ class Editor extends React.Component {
       catName = catData.name;
       categoryColor = catData.color;
     }
-    const theme = Appearance.getColorScheme();
+    // console.log(Appearance.getColorScheme());
+    const theme = "light";
     const contentStyle = this.createContentStyle(theme);
     this.initHTML = initialHTML;
     this.state = {
