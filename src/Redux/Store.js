@@ -23,7 +23,7 @@ export const ConfigureStore = () => {
       sortNotes: SortNotes,
       drawerSwipe: DrawerSwipe,
     }),
-    applyMiddleware(thunk, logger)
+    applyMiddleware(thunk)
   );
 
   const persistor = persistStore(store);

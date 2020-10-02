@@ -129,23 +129,47 @@ class Editor extends React.Component {
       const { status } = await ImagePicker.requestCameraRollPermissionsAsync();
       if (status !== "granted") {
         alert("Sorry, we need camera roll permissions to make this work!");
+      } else {
+        this.pickImage();
       }
     }
   };
 
   pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [4, 3],
+      // aspect: [4, 3],
       quality: 1,
+      base64: true,
+      // allowsMultipleSelection: true,
+      // exif: true,
     });
 
-    console.log(result);
+    // result.cancelled ? null : this.richText.current?.insertImage(result.uri);
+    result.cancelled
+      ? null
+      : this.richText.current?.insertImage(
+          `data:${result.type}/*;base64,${result.base64}`
+        );
+
+    // console.log("HERE IS IMAGE", result);
+    let html = await this.richText.current?.getContentHtml();
+    // console.log(html);
 
     if (!result.cancelled) {
       this.setState({ image: result.uri });
     }
+  };
+
+  onPressAddImage = () => {
+    // insert URL
+    this.richText.current?.insertImage(
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/100px-React-icon.svg.png"
+    );
+    // insert base64
+    // this.richText.current?.insertImage(`data:${image.mime};base64,${image.data}`);
+    // this.richText.current?.blurContentEditor();
   };
 
   handleChange = (html) => {
@@ -172,16 +196,6 @@ class Editor extends React.Component {
 
   onDisabled = () => {
     this.setState({ disabled: !this.state.disabled });
-  };
-
-  onPressAddImage = () => {
-    // insert URL
-    this.richText.current?.insertImage(
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/100px-React-icon.svg.png"
-    );
-    // insert base64
-    // this.richText.current?.insertImage(`data:${image.mime};base64,${image.data}`);
-    // this.richText.current?.blurContentEditor();
   };
 
   insertHTML = () => {
@@ -221,7 +235,7 @@ class Editor extends React.Component {
     // const date = new Date(item.updateDate.seconds * 1000).toDateString();
     isNew ? this.props.createNote(note) : this.props.editNote(note, index);
     this.setState({ disabled: !this.state.disabled, changeMade: false });
-    console.log(note);
+    // console.log(note);
   };
 
   createContentStyle = (theme) => {
@@ -399,11 +413,11 @@ class Editor extends React.Component {
             iconTint={color}
             selectedIconTint={"#2095F2"}
             disabledIconTint={"#8b8b8b"}
-            onPressAddImage={this.onPressAddImage}
+            onPressAddImage={this.getPermission}
             // onInsertLink={this.onInsertLink}
-            iconSize={40} // default 50
+            iconSize={50} // default 50
             actions={[
-              //   "insertVideo",
+              // "insertVideo",
               ...defaultActions,
               actions.setStrikethrough,
               actions.heading1,
@@ -427,7 +441,7 @@ class Editor extends React.Component {
             }}
             // insertEmoji={this.handleEmoji}
             insertHTML={this.insertHTML}
-            // insertVideo={this.insertVideo}
+            // insertVideo={this.getPermission}
           />
           {/* {emojiVisible && <EmojiView onSelect={this.insertEmoji} />} */}
         </KeyboardAvoidingView>

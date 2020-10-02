@@ -14,7 +14,7 @@ export default function SelectCategorie(props) {
   const [categoryName, setCategoryName] = useState(
     `Category ${categories.data.length + 1}`
   );
-  console.log("Number of categories", categories.data.length + 1);
+  // console.log("Number of categories", categories.data.length + 1);
   const [categoryColor, setCategoryColor] = useState("");
   // redux action dispatcher
   const dispatch = useDispatch();
@@ -46,7 +46,7 @@ export default function SelectCategorie(props) {
           onPress={(name, id, color, index, count) => {
             props.selectCategory(name, id, color);
             props.closeCategorySelector();
-            console.log(name, "Pressed", id);
+            // console.log(name, "Pressed", id);
           }}
           onLongPress={() => {}}
         />

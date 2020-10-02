@@ -124,7 +124,8 @@ const scanFingerPrint = async (props, item, index, mode, dispatch) => {
       // console.log("Not Authenticated");
     }
   } catch (e) {
-    console.log(e);
+    toast("Clean the scanner and try again");
+    console.log("Error in scanning fingerprint", e);
   }
 };
 
@@ -246,7 +247,7 @@ export default function Notes(props) {
                     break;
 
                   case "Unlock":
-                    console.log("Unlocking");
+                    // console.log("Unlocking");
                     scanFingerPrint(
                       props,
                       currentNote,

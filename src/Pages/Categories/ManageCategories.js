@@ -95,7 +95,7 @@ export default function ManageCategories(props) {
               setCategoryColor(color);
               setEditingCategoryId(id);
               setIsEditing(true);
-              console.log(name, "Pressed", id);
+              // console.log(name, "Pressed", id);
             }}
             onLongPress={(name, id, color, index, count) => {
               openActionSheet(
@@ -108,7 +108,7 @@ export default function ManageCategories(props) {
               setCategoryColor(color);
               setEditingCategoryId(id);
               setIsEditing(true);
-              console.log(name, "Long Pressed", id);
+              // console.log(name, "Long Pressed", id);
             }}
           />
         </View>

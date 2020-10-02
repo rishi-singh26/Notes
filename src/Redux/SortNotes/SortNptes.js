@@ -4,7 +4,7 @@ export const SortNotes = (state = { id: -11, name: "Notes" }, action) => {
   switch (action.type) {
     //
     case ActionTypes.SORT_NOTES:
-      console.log("sorting data", action.payload);
+      // console.log("sorting data", action.payload);
       return {
         ...state,
         id: action.payload.categoryId,

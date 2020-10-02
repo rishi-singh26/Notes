@@ -12,7 +12,7 @@ export function findCategoryColorAndNameUsingId(categories, catId) {
   let color = "#888";
   let name = "Uncategorised";
 
-  console.log("from function", { categories, catId });
+  // console.log("from function", { categories, catId });
 
   for (let i = 0; i < categories.data.length; i++) {
     if (categories.data[i].id === catId) {
