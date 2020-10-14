@@ -40,6 +40,7 @@ import { connect } from "react-redux";
 import SelectCategorie from "../Categories/SelectCategory";
 import { findCategoryColorAndNameUsingId, toast } from "../../Functions/index";
 import Dilogue from "../../Components/Dilogue";
+import InsertLink from "./InsertLink";
 
 const { strikeThrough, video, html, emoji } = Assets;
 
@@ -109,6 +110,9 @@ class Editor extends React.Component {
       selectCategoryModalVisible: false,
       showDiscardChangesDilogue: false,
       currentNavAction: null,
+      showInsertLinkDilogue: false,
+      linkTitle: "",
+      linkData: "https://",
     };
   }
 
@@ -227,8 +231,13 @@ class Editor extends React.Component {
     );
   };
 
-  onLinkDone = ({ title, url }) => {
+  onLinkDone = (title, url) => {
+    console.log({ title, url });
     this.richText.current?.insertLink(title, url);
+  };
+
+  onInsertLink = () => {
+    this.setState({ showInsertLinkDilogue: true });
   };
 
   save = async () => {
@@ -300,19 +309,32 @@ class Editor extends React.Component {
       selectCategoryModalVisible,
       showDiscardChangesDilogue,
       currentNavAction,
+      showInsertLinkDilogue,
+      linkTitle,
+      linkData,
     } = this.state;
     const { isNew, data, index } = this.props.route.params;
     const { backgroundColor, color, placeholderColor } = contentStyle;
     const themeBg = { backgroundColor };
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: backColor }}>
-        {/* <InsertLinkModal
-                    placeholderColor={placeholderColor}
-                    color={color}
-                    backgroundColor={backgroundColor}
-                    onDone={that.onLinkDone}
-                    ref={that.linkModal}
-                /> */}
+        <InsertLink
+          showDilogue={showInsertLinkDilogue}
+          closeDilogue={() => {
+            this.setState({ showInsertLinkDilogue: false });
+          }}
+          linkTitle={linkTitle}
+          setTitleChange={(text) => {
+            this.setState({ linkTitle: text });
+          }}
+          linkData={linkData}
+          setDataChange={(text) => {
+            this.setState({ linkData: text });
+          }}
+          submitLink={(title, link) => {
+            this.onLinkDone(title, link);
+          }}
+        />
         <View style={styles.topBtnsView}>
           <TouchableOpacity
             style={styles.backBtn}
@@ -439,7 +461,7 @@ class Editor extends React.Component {
             selectedIconTint={"#2095F2"}
             disabledIconTint={"#8b8b8b"}
             onPressAddImage={this.getPermission}
-            // onInsertLink={this.onInsertLink}
+            onInsertLink={this.onInsertLink}
             iconSize={50} // default 50
             actions={[
               // "insertVideo",

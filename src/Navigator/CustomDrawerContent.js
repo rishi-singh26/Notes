@@ -54,7 +54,7 @@ export default function CustomDrawerContent(props) {
               </View>
               <TouchableNativeFeedback
                 onPress={() => {
-                  // setSelectedCategory(-1);
+                  setSelectedCategory(-1);
                   dispatch(resetSort());
                   props.navigation.toggleDrawer();
                 }}
@@ -111,7 +111,7 @@ export default function CustomDrawerContent(props) {
               ) : null}
               <TouchableNativeFeedback
                 onPress={() => {
-                  // setSelectedCategory(-1);
+                  setSelectedCategory(-1);
                   dispatch(resetSort());
                   props.navigation.navigate("ManageCategories");
                 }}
@@ -143,7 +143,7 @@ export default function CustomDrawerContent(props) {
           return (
             <TouchableNativeFeedback
               onPress={() => {
-                // setSelectedCategory(index);
+                setSelectedCategory(index);
                 dispatch(sortNote(item.id, item.name));
                 props.navigation.toggleDrawer();
               }}

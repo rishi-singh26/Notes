@@ -107,7 +107,11 @@ function openActionSheet(showActionSheet, isLocked, dilogueFuncs, index) {
 
 const scanFingerPrint = async (props, item, index, mode, dispatch) => {
   try {
-    let results = await LocalAuthentication.authenticateAsync();
+    let results = await LocalAuthentication.authenticateAsync({
+      cancelLabel: "Cancel",
+      disableDeviceFallback: true,
+      fallbackLabel: "Use Pin",
+    });
     if (results.success) {
       if (mode) {
         props.navigation.navigate("Editor", {

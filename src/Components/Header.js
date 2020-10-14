@@ -28,7 +28,7 @@ export default function Header({ menuBtnPress, title }) {
         </View>
         <TouchableOpacity
           onPress={() => {
-            // setAccountModalVisible(true);
+            setAccountModalVisible(true);
           }}
         >
           <MaterialCommunityIcons

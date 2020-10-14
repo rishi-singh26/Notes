@@ -15,22 +15,35 @@ export default function ProfileModal({ visible, closeModal }) {
         <View
           style={{
             flexDirection: "row",
-            justifyContent: "flex-start",
-            paddingHorizontal: 20,
-            paddingVertical: 10,
+            justifyContent: "space-between",
+            paddingHorizontal: 10,
+            paddingVertical: 13,
             borderBottomColor: "#ddd",
             borderBottomWidth: 0.6,
             alignItems: "center",
           }}
         >
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "flex-start",
+              alignItems: "center",
+            }}
+          >
+            <Feather
+              onPress={closeModal}
+              name="x"
+              size={22}
+              color="#000"
+              style={{ paddingHorizontal: 10 }}
+            />
+            <Text style={{ paddingHorizontal: 20, fontSize: 20 }}>Account</Text>
+          </View>
           <Feather
-            onPress={closeModal}
-            name="x"
+            name="settings"
             size={22}
-            color="#000"
             style={{ paddingHorizontal: 10 }}
           />
-          <Text style={{ paddingHorizontal: 20, fontSize: 20 }}>Account</Text>
         </View>
         <View
           style={{
