@@ -11,3 +11,4 @@ export const lightModeTextHardColor = "#000";
 export const lightModeTextLightColor = "#888";
 export const lightModeBtnBackColor = "#dfdfdf";
 export const green = "#1a9413";
+export const primaryErrColor = "#f25246";

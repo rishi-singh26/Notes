@@ -18,7 +18,11 @@ export default function Dilogue(props) {
         }}
         style={[
           styles.transparentView,
-          // { backgroundColor: props.transparentBackColor },
+          {
+            backgroundColor: props.transparentBackColor
+              ? props.transparentBackColor
+              : "#0003",
+          },
         ]}
       >
         <Pressable
@@ -40,7 +44,7 @@ const styles = StyleSheet.create({
     height: "100%",
     width: "100%",
     justifyContent: "center",
-    backgroundColor: "#0003",
+    // backgroundColor: "#0003",
   },
   container: {
     marginHorizontal: 10,
