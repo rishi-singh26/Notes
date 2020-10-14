@@ -495,7 +495,7 @@ const styles = StyleSheet.create({
     marginRight: 30,
   },
   titleInput: {
-    paddingHorizontal: 10,
+    paddingHorizontal: 15,
     paddingVertical: 10,
     flex: 1,
     fontSize: 18,
