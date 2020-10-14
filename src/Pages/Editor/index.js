@@ -11,6 +11,7 @@ import {
   Text,
   TextInput,
   View,
+  Alert,
 } from "react-native";
 import {
   actions,
@@ -24,9 +25,11 @@ import Constants from "expo-constants";
 import { Feather } from "@expo/vector-icons";
 import {
   backColor,
+  backColorTwo,
   lightModeTextHardColor,
   lightModeTextLightColor,
   primaryColor,
+  primaryErrColor,
 } from "../../Styles";
 import { createNote, editNote } from "../../Redux/Notes/ActionCreator";
 import {
@@ -36,6 +39,7 @@ import {
 import { connect } from "react-redux";
 import SelectCategorie from "../Categories/SelectCategory";
 import { findCategoryColorAndNameUsingId, toast } from "../../Functions/index";
+import Dilogue from "../../Components/Dilogue";
 
 const { strikeThrough, video, html, emoji } = Assets;
 
@@ -103,6 +107,8 @@ class Editor extends React.Component {
       changeMade: false,
       image: null,
       selectCategoryModalVisible: false,
+      showDiscardChangesDilogue: false,
+      currentNavAction: null,
     };
   }
 
@@ -111,6 +117,21 @@ class Editor extends React.Component {
     Keyboard.addListener("keyboardDidShow", this.onKeyBoard);
     // stop drawer swipe
     this.props.stopDrawerSwipe();
+
+    this.props.navigation.addListener("beforeRemove", (e) => {
+      if (!this.state.changeMade) {
+        // If we don't have unsaved changes, then we don't need to do anything
+        return;
+      }
+      // Prevent default behavior of leaving the screen
+      e.preventDefault();
+
+      // Prompt the user before leaving the screen
+      this.setState({
+        showDiscardChangesDilogue: true,
+        currentNavAction: e.data.action,
+      });
+    });
   }
 
   componentWillUnmount() {
@@ -118,6 +139,7 @@ class Editor extends React.Component {
     Keyboard.removeListener("keyboardDidShow", this.onKeyBoard);
     // start drawer swipe
     this.props.startDrawerSwipe();
+    this.props.navigation.removeListener("beforeRemove");
   }
 
   onKeyBoard = () => {
@@ -276,6 +298,8 @@ class Editor extends React.Component {
       categoryId,
       categoryColor,
       selectCategoryModalVisible,
+      showDiscardChangesDilogue,
+      currentNavAction,
     } = this.state;
     const { isNew, data, index } = this.props.route.params;
     const { backgroundColor, color, placeholderColor } = contentStyle;
@@ -460,6 +484,40 @@ class Editor extends React.Component {
             });
           }}
         />
+        <Dilogue
+          dilogueVisible={showDiscardChangesDilogue}
+          closeDilogue={() => {
+            this.setState({ showDiscardChangesDilogue: false });
+          }}
+          cancellable={false}
+          dilogueBackground={primaryErrColor}
+          transparentBackColor={"#0000"}
+        >
+          <View>
+            <Text style={styles.dilogueHeader}>Discard changes?</Text>
+            <Text style={styles.dilogueTxt}>
+              You have unsaved changes. Are you sure to discard them and leave
+              the screen?
+            </Text>
+            <View style={styles.dilogueBtnsView}>
+              <TouchableOpacity
+                onPress={() => {
+                  this.setState({ showDiscardChangesDilogue: false });
+                }}
+              >
+                <Text style={styles.dilogueBtn}>Don't leave</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  this.setState({ showDiscardChangesDilogue: false });
+                  this.props.navigation.dispatch(currentNavAction);
+                }}
+              >
+                <Text style={styles.dilogueBtn}>Discard</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Dilogue>
       </SafeAreaView>
     );
   }
@@ -507,4 +565,22 @@ const styles = StyleSheet.create({
     color: "#515156",
     // color: tintColor,
   },
+  dilogueHeader: {
+    fontSize: 17,
+    fontWeight: "700",
+    paddingHorizontal: 10,
+    color: backColorTwo,
+  },
+  dilogueTxt: {
+    fontSize: 14,
+    color: backColorTwo,
+    paddingTop: 10,
+    paddingLeft: 10,
+  },
+  dilogueBtnsView: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginTop: 20,
+  },
+  dilogueBtn: { fontSize: 16, fontWeight: "700", color: backColorTwo },
 });
