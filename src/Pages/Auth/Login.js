@@ -16,7 +16,6 @@ import {
   primaryColor,
 } from "../../Styles";
 import { Feather } from "@expo/vector-icons";
-import * as GoogleSignIn from "expo-google-sign-in";
 
 export default function Login(props) {
   // local state
