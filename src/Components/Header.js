@@ -9,7 +9,7 @@ import {
   lightModeTextLightColor,
   primaryColor,
 } from "../Styles/index";
-import ProfileModal from "./ProfileModal";
+import ProfileModal from "../Pages/Profile/index";
 
 export default function Header({ menuBtnPress, title }) {
   const [accountModalVisible, setAccountModalVisible] = useState(false);

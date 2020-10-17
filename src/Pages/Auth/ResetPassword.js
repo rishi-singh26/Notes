@@ -1,5 +1,5 @@
 import { Feather } from "@expo/vector-icons";
-import React from "react";
+import React, { useState } from "react";
 import {
   SafeAreaView,
   View,
@@ -16,12 +16,14 @@ import {
 } from "../../Styles";
 
 export default function ResetPassword(props) {
+  const [email, setEmail] = useState("");
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: backColor }}>
+    <View style={{ backgroundColor: backColor }}>
       <View style={styles.header}>
         <Feather
           onPress={() => {
-            props.navigation.goBack();
+            props.onBackPress();
           }}
           name="chevron-left"
           size={30}
@@ -34,21 +36,16 @@ export default function ResetPassword(props) {
         style={styles.textInput}
         placeholder="Email"
         placeholderTextColor="#aaa"
+        keyboardType="email-address"
+        value={email}
+        onChangeText={(text) => {
+          setEmail(text);
+        }}
       />
       <TouchableOpacity style={styles.loginBtn}>
         <Text style={styles.loginBtnTxt}>Send Password Reset Link</Text>
       </TouchableOpacity>
-      <TouchableOpacity onPress={() => props.navigation.navigate("Signup")}>
-        <Text
-          style={[
-            styles.loginBtnTxt,
-            { color: lightModeTextHardColor, alignSelf: "center" },
-          ]}
-        >
-          SignUp
-        </Text>
-      </TouchableOpacity>
-    </SafeAreaView>
+    </View>
   );
 }
 

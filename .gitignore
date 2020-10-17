@@ -11,6 +11,7 @@ web-build/
 
 # firebase 
 src/Firebase
+google-services.json
 
 # macOS
 .DS_Store

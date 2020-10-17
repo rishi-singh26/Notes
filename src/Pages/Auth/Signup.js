@@ -1,5 +1,5 @@
 import { Feather } from "@expo/vector-icons";
-import React from "react";
+import React, { useState } from "react";
 import {
   SafeAreaView,
   View,
@@ -13,15 +13,25 @@ import {
   backColorTwo,
   lightModeBtnBackColor,
   lightModeTextHardColor,
+  lightModeTextLightColor,
+  primaryColor,
 } from "../../Styles";
 
 export default function Signup(props) {
+  // local state
+  const [email, setEmail] = useState("");
+  const [pass, setPass] = useState("");
+  const [reEnterPass, setReEnterPass] = useState("");
+  const [shouldShowPassword, setShouldShowPassword] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errMess, setErrMess] = useState(null);
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: backColor }}>
+    <View style={{ backgroundColor: backColor }}>
       <View style={styles.header}>
         <Feather
           onPress={() => {
-            props.navigation.goBack();
+            props.onLoginPress();
           }}
           name="chevron-left"
           size={30}
@@ -30,32 +40,63 @@ export default function Signup(props) {
         />
         <Text style={styles.headerText}>SignUp</Text>
       </View>
-      <TextInput
-        style={styles.textInput}
-        placeholder="Email"
-        placeholderTextColor="#aaa"
-      />
-      <TextInput
-        style={styles.textInput}
-        placeholder="Password"
-        placeholderTextColor="#aaa"
-      />
-      <TouchableOpacity style={styles.loginBtn}>
-        <Text style={styles.loginBtnTxt}>Login</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={() => props.navigation.navigate("ResetPassword")}
-      >
-        <Text
-          style={[
-            styles.loginBtnTxt,
-            { color: lightModeTextHardColor, alignSelf: "center" },
-          ]}
-        >
-          Forgot Password
-        </Text>
-      </TouchableOpacity>
-    </SafeAreaView>
+      <View>
+        <TextInput
+          style={styles.textInput}
+          placeholder="Email"
+          placeholderTextColor="#aaa"
+          value={email}
+          onChangeText={(text) => {
+            setEmail(text);
+          }}
+          keyboardType="email-address"
+          textContentType="emailAddress"
+        />
+        <View style={[styles.textInput, styles.textInputView]}>
+          <TextInput
+            placeholder="Password"
+            placeholderTextColor="#aaa"
+            value={pass}
+            onChangeText={(text) => {
+              setPass(text);
+            }}
+            style={{ flex: 1 }}
+            secureTextEntry={shouldShowPassword}
+          />
+          <Feather
+            color={lightModeTextLightColor}
+            size={18}
+            name={shouldShowPassword ? "eye" : "eye-off"}
+            onPress={() => {
+              setShouldShowPassword(!shouldShowPassword);
+            }}
+          />
+        </View>
+        <View style={[styles.textInput, styles.textInputView]}>
+          <TextInput
+            placeholder="Password"
+            placeholderTextColor="#aaa"
+            value={reEnterPass}
+            onChangeText={(text) => {
+              setReEnterPass(text);
+            }}
+            style={{ flex: 1 }}
+            secureTextEntry={shouldShowPassword}
+          />
+          <Feather
+            color={lightModeTextLightColor}
+            size={18}
+            name={shouldShowPassword ? "eye" : "eye-off"}
+            onPress={() => {
+              setShouldShowPassword(!shouldShowPassword);
+            }}
+          />
+        </View>
+        <TouchableOpacity style={styles.loginBtn}>
+          <Text style={styles.loginBtnTxt}>Sign Up</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }
 
@@ -79,6 +120,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 13,
     paddingVertical: 10,
+  },
+  textInputView: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   loginBtn: {
     paddingHorizontal: 20,
