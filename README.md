@@ -39,14 +39,12 @@ export const cloudStorage = firebase.storage();
 
 ### Dependencies
 
-| Dependencies                          | README                                                                |
-| ------------------------------------- | --------------------------------------------------------------------- | ------------------ | -------------------------------------------------- |
-| firebase                              | [https://www.npmjs.com/package/firebase]                              |
-| redux                                 | [https://www.npmjs.com/package/redux]                                 |
-| react-redux                           | [https://www.npmjs.com/package/react-redux]                           |
-| redux-logger                          | [https://www.npmjs.com/package/redux-logger]                          |
-| redux-persist                         | [https://www.npmjs.com/package/redux-persist]                         |
-| redux-thunk                           | [https://www.npmjs.com/package/redux-thunk]                           |
-| @expo/vector-icons                    | [https://www.npmjs.com/package/@expo/vector-icons]                    |
-| @react-native-community/async-storage | [https://www.npmjs.com/package/@react-native-community/async-storage] |
-| react-native-paper                    | [https://www.npmjs.com/package/react-native-paper]                    | react-native-paper | [https://www.npmjs.com/package/react-native-paper] |
+| Dependencies       | README                                                            |
+| ------------------ | ----------------------------------------------------------------- |
+| firebase           | [https://www.npmjs.com/package/firebase]                          |
+| redux              | [https://www.npmjs.com/package/redux]                             |
+| react-redux        | [https://www.npmjs.com/package/react-redux]                       |
+| redux-logger       | [https://www.npmjs.com/package/redux-logger]                      |
+| redux-persist      | [https://www.npmjs.com/package/redux-persist]                     |
+| @expo/vector-icons | [https://www.npmjs.com/package/@expo/vector-icons]                |
+| More               | [https://github.com/rishi-singh26/Notes/blob/master/package.json] |
