@@ -1,55 +1,92 @@
-import { Feather } from "@expo/vector-icons";
-import React from "react";
-import { Modal, View, Text, StyleSheet } from "react-native";
+import React, { useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  Image,
+  TouchableOpacity,
+} from "react-native";
 import { useSelector } from "react-redux";
+import { auth } from "../../Firebase";
+import { backColor } from "../../Styles";
+import { Feather } from "@expo/vector-icons";
 
-export default function ProfileModal({ visible, closeModal }) {
-  const auth = useSelector((state) => state.auth);
-  return (
-    <Modal
-      transparent
-      animated
-      animationType="slide"
-      visible={visible}
-      onRequestClose={() => closeModal()}
-    >
-      <View style={{ height: "100%", width: "100%", backgroundColor: "#fff" }}>
-        <View style={styles.headerView}>
-          <View style={styles.headerLeftView}>
+export default function Profile(props) {
+  const setHeaderOptions = () => {
+    props.navigation.setOptions({
+      headerRight: () => {
+        return (
+          <TouchableOpacity
+            style={styles.headerIconStyle}
+            onPress={() => {
+              alert("Settings pressed");
+            }}
+          >
+            <Feather name="settings" size={23} color={"black"} />
+          </TouchableOpacity>
+        );
+      },
+      headerLeft: () => {
+        return (
+          <TouchableOpacity
+            style={styles.headerIconStyle}
+            onPress={() => {
+              alert("Settings pressed");
+            }}
+          >
             <Feather
-              onPress={closeModal}
-              name="x"
-              size={22}
-              color="#000"
-              style={{ paddingHorizontal: 10 }}
+              name="chevron-left"
+              size={25}
+              color={"black"}
+              onPress={() => props.navigation.goBack()}
             />
-            <Text style={{ paddingHorizontal: 20, fontSize: 20 }}>Account</Text>
-          </View>
-          <Feather
-            name="settings"
-            size={22}
-            style={{ paddingHorizontal: 10 }}
-          />
+          </TouchableOpacity>
+        );
+      },
+    });
+  };
+
+  useEffect(() => {
+    setHeaderOptions();
+  }, []);
+
+  const authentication = useSelector((state) => state.auth);
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: backColor }}>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "flex-start",
+          marginTop: 10,
+        }}
+      >
+        <Image
+          source={{
+            uri:
+              auth?.currentUser?.photoURL ||
+              "https://www.iconfinder.com/data/icons/avatars-xmas-giveaway/128/girl_female_woman_avatar-512.png",
+          }}
+          style={{
+            height: 40,
+            width: 40,
+            borderRadius: 20,
+            marginHorizontal: 23,
+          }}
+        />
+        <View style={{ flexDirection: "column" }}>
+          <Text style={{ fontSize: 16 }}>Rishi Singh</Text>
+          <Text style={{ fontSize: 16 }}>rishisingh@gmail.com</Text>
         </View>
-        <Text>{JSON.stringify(auth, null, 4)}</Text>
       </View>
-    </Modal>
+      <Text>{JSON.stringify(authentication, null, 4)}</Text>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerView: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 10,
-    paddingVertical: 13,
-    borderBottomColor: "#ddd",
-    borderBottomWidth: 0.6,
-    alignItems: "center",
-  },
-  headerLeftView: {
-    flexDirection: "row",
-    justifyContent: "flex-start",
-    alignItems: "center",
+  headerIconStyle: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
   },
 });

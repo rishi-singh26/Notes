@@ -1,4 +1,6 @@
 import { ToastAndroid } from "react-native";
+import * as Print from "expo-print";
+import * as Sharing from "expo-sharing";
 
 export function toast(message) {
   ToastAndroid.showWithGravity(
@@ -44,4 +46,29 @@ export function getDateString(date) {
   } else {
     return date;
   }
+}
+
+export async function shareNote(note, screenShotUri = "oo") {
+  console.log(note);
+  try {
+    const pdf = await Print.printToFileAsync({
+      html: note,
+      base64: true,
+    });
+    console.log(pdf.uri);
+    shareThings(pdf.uri);
+  } catch (error) {
+    console.log(error.message);
+  }
+}
+
+export async function shareThings(uri = "kk") {
+  try {
+    const isAvailable = await Sharing.isAvailableAsync();
+    if (!isAvailable) {
+      alert("Oops!! Sharing is not supported on your device.");
+      return;
+    }
+    await Sharing.shareAsync(uri);
+  } catch (error) {}
 }

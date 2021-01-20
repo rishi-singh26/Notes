@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { View, StyleSheet, Text, TouchableOpacity } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import MenuIcon from "./MenuIcon";
@@ -9,11 +9,8 @@ import {
   lightModeTextLightColor,
   primaryColor,
 } from "../Styles/index";
-import ProfileModal from "../Pages/Profile/index";
 
-export default function Header({ menuBtnPress, title }) {
-  const [accountModalVisible, setAccountModalVisible] = useState(false);
-
+export default function Header({ menuBtnPress, title, onProfilePress }) {
   return (
     <View style={styles.headerBox}>
       <View style={styles.headerMenuView}>
@@ -28,7 +25,7 @@ export default function Header({ menuBtnPress, title }) {
         </View>
         <TouchableOpacity
           onPress={() => {
-            setAccountModalVisible(true);
+            onProfilePress();
           }}
         >
           <MaterialCommunityIcons
@@ -39,12 +36,6 @@ export default function Header({ menuBtnPress, title }) {
           />
         </TouchableOpacity>
       </View>
-      <ProfileModal
-        visible={accountModalVisible}
-        closeModal={() => {
-          setAccountModalVisible(!accountModalVisible);
-        }}
-      />
     </View>
   );
 }
@@ -53,7 +44,6 @@ const styles = StyleSheet.create({
   headerBox: {
     backgroundColor: backColor,
   },
-
   headerMenuView: {
     flexDirection: "row",
     paddingHorizontal: 30,
@@ -62,14 +52,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-
   headerHeading: {
     color: lightModeTextHardColor,
-    paddingTop: 25,
+    paddingTop: 15,
     fontSize: 32,
     fontWeight: "700",
   },
-
   headerBoxIcon: {
     padding: 10,
     alignSelf: "center",

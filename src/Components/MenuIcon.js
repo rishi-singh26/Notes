@@ -4,7 +4,7 @@ import { View, TouchableOpacity } from "react-native";
 export default function MenuIcon({ onPress, iconColor }) {
   return (
     <TouchableOpacity
-      style={{ flexDirection: "column" }}
+      style={{ flexDirection: "column", paddingVertical: 10 }}
       onPress={() => {
         onPress();
       }}

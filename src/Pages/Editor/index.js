@@ -39,7 +39,11 @@ import {
 } from "../../Redux/DrawerSwipe/ActionCreator";
 import { connect } from "react-redux";
 import SelectCategorie from "../Categories/SelectCategory";
-import { findCategoryColorAndNameUsingId, toast } from "../../Functions/index";
+import {
+  findCategoryColorAndNameUsingId,
+  shareNote,
+  toast,
+} from "../../Functions/index";
 import Dilogue from "../../Components/Dilogue";
 import InsertLink from "./InsertLink";
 import "react-native-get-random-values";
@@ -111,7 +115,6 @@ class Editor extends React.Component {
       changeMade: false,
       image: null,
       selectCategoryModalVisible: false,
-      showDiscardChangesDilogue: false,
       currentNavAction: null,
       showInsertLinkDilogue: false,
       linkTitle: "",
@@ -134,10 +137,8 @@ class Editor extends React.Component {
       e.preventDefault();
 
       // Prompt the user before leaving the screen
-      this.setState({
-        showDiscardChangesDilogue: true,
-        currentNavAction: e.data.action,
-      });
+      this.setState({ currentNavAction: e.data.action });
+      this.discardChangesActionSheet();
     });
   }
 
@@ -275,10 +276,12 @@ class Editor extends React.Component {
   };
 
   openOptionsSheet = () => {
-    const options = ["Delete", "Share", "Cancel"];
+    const options = ["Delete", "Cancel"];
     const destructiveButtonIndex = 0;
-    const cancelButtonIndex = 2;
+    const cancelButtonIndex = 1;
     const textStyle = { fontWeight: "700" };
+    const message = "Do you want to delete this note?";
+    const messageTextStyle = { fontSize: 17, fontWeight: "700" };
     const { data, index } = this.props.route.params;
 
     this.props.showActionSheetWithOptions(
@@ -287,6 +290,8 @@ class Editor extends React.Component {
         cancelButtonIndex,
         destructiveButtonIndex,
         textStyle,
+        message,
+        messageTextStyle,
       },
       (buttonIndex) => {
         if (buttonIndex === 0) {
@@ -294,11 +299,33 @@ class Editor extends React.Component {
           this.props.navigation.goBack();
           return;
         }
-        if (buttonIndex === 1) {
-          console.log("Sharing");
+        // Do something here depending on the button index selected
+      }
+    );
+  };
+
+  discardChangesActionSheet = () => {
+    const options = ["Discard changes", "Cancel"];
+    const destructiveButtonIndex = 0;
+    const cancelButtonIndex = 1;
+    const textStyle = { fontWeight: "700" };
+    const message = "Do you want to discard your changes?";
+    const messageTextStyle = { fontSize: 17, fontWeight: "700" };
+
+    this.props.showActionSheetWithOptions(
+      {
+        options,
+        cancelButtonIndex,
+        destructiveButtonIndex,
+        textStyle,
+        message,
+        messageTextStyle,
+      },
+      (buttonIndex) => {
+        if (buttonIndex === 0) {
+          this.props.navigation.dispatch(this.state.currentNavAction);
           return;
         }
-        // Do something here depending on the button index selected
       }
     );
   };
@@ -313,7 +340,6 @@ class Editor extends React.Component {
       categoryId,
       categoryColor,
       selectCategoryModalVisible,
-      showDiscardChangesDilogue,
       currentNavAction,
       showInsertLinkDilogue,
       linkTitle,
@@ -322,6 +348,9 @@ class Editor extends React.Component {
     const { isNew, data, index } = this.props.route.params;
     const { backgroundColor, color, placeholderColor } = contentStyle;
     const themeBg = { backgroundColor };
+    const categoriesBtnColor = categoryId
+      ? categoryColor
+      : lightModeTextLightColor;
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: backColor }}>
         <InsertLink
@@ -362,40 +391,36 @@ class Editor extends React.Component {
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={{ paddingLeft: 10 }}
+              style={{ paddingHorizontal: 10 }}
+              onPress={() => {
+                shareNote(data.content);
+              }}
+            >
+              <Feather size={18} color="#777" name="share-2" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{ paddingLeft: 10, paddingRight: 5 }}
               onPress={() => {
                 this.openOptionsSheet();
               }}
             >
-              <Feather size={20} color="#333" name="more-vertical" />
+              <Feather size={18} color="#777" name="trash" />
             </TouchableOpacity>
           </View>
         </View>
         <ScrollView keyboardDismissMode={"none"}>
+          {/* category name */}
           <TouchableOpacity
             onPress={() => {
               this.setState({ selectCategoryModalVisible: true });
             }}
-            style={[
-              styles.categoryView,
-              {
-                borderColor: categoryId
-                  ? categoryColor
-                  : lightModeTextLightColor,
-              },
-            ]}
+            style={[styles.categoryView, { borderColor: categoriesBtnColor }]}
           >
-            <Text
-              style={[
-                styles.categoryTxt,
-                {
-                  color: categoryId ? categoryColor : lightModeTextLightColor,
-                },
-              ]}
-            >
+            <Text style={[styles.categoryTxt, { color: categoriesBtnColor }]}>
               {categoryName}
             </Text>
           </TouchableOpacity>
+          {/* title */}
           <TextInput
             style={styles.titleInput}
             editable={true}
@@ -409,6 +434,7 @@ class Editor extends React.Component {
               });
             }}
           />
+          {/* Editor */}
           <RichEditor
             initialFocus={false}
             disabled={false}
@@ -423,6 +449,7 @@ class Editor extends React.Component {
             onHeightChange={this.handleHeightChange}
           />
         </ScrollView>
+        {/* tool bar */}
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={{ borderTopColor: "#eee", borderTopWidth: 0.5 }}
@@ -478,12 +505,9 @@ class Editor extends React.Component {
               insertHTML: html,
               insertVideo: video,
             }}
-            // insertEmoji={this.handleEmoji}
-            // insertHTML={this.insertHTML}
-            // insertVideo={() => this.getPermission(false)}
           />
-          {/* {emojiVisible && <EmojiView onSelect={this.insertEmoji} />} */}
         </KeyboardAvoidingView>
+        {/* categories selector modal */}
         <SelectCategorie
           categoriesSelectorVisible={selectCategoryModalVisible}
           closeCategorySelector={() => {
@@ -498,40 +522,6 @@ class Editor extends React.Component {
             });
           }}
         />
-        <Dilogue
-          dilogueVisible={showDiscardChangesDilogue}
-          closeDilogue={() => {
-            this.setState({ showDiscardChangesDilogue: false });
-          }}
-          cancellable={false}
-          dilogueBackground={primaryErrColor}
-          transparentBackColor={"#0000"}
-        >
-          <View>
-            <Text style={styles.dilogueHeader}>Discard changes?</Text>
-            <Text style={styles.dilogueTxt}>
-              You have unsaved changes. Are you sure to discard them and leave
-              the screen?
-            </Text>
-            <View style={styles.dilogueBtnsView}>
-              <TouchableOpacity
-                onPress={() => {
-                  this.setState({ showDiscardChangesDilogue: false });
-                }}
-              >
-                <Text style={styles.dilogueBtn}>Don't leave</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => {
-                  this.setState({ showDiscardChangesDilogue: false });
-                  this.props.navigation.dispatch(currentNavAction);
-                }}
-              >
-                <Text style={styles.dilogueBtn}>Discard</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Dilogue>
       </SafeAreaView>
     );
   }

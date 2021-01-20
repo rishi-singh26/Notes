@@ -161,12 +161,15 @@ export default function Notes(props) {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: backColor }}>
+      {/* header */}
       <Header
         menuBtnPress={() => {
           props.navigation.toggleDrawer();
         }}
         title={sortingData.name}
+        onProfilePress={() => props.navigation.navigate("Profile")}
       />
+      {/* Notes */}
       {sortedNotes.length < 1 ? (
         <View style={styles.createNoteView}>
           <Text style={styles.createNote}>No Notes</Text>
@@ -182,6 +185,7 @@ export default function Notes(props) {
           renderItem={renderNote}
         />
       )}
+      {/* FAB */}
       <TouchableOpacity
         style={styles.addNoteBtnView}
         onPress={() => {
@@ -196,6 +200,7 @@ export default function Notes(props) {
       >
         <Feather name="plus" size={25} color={backColorTwo} />
       </TouchableOpacity>
+      {/* alerts */}
       <Dilogue
         dilogueVisible={showDilogue}
         closeDilogue={() => {
