@@ -11,7 +11,6 @@ import {
   Text,
   TextInput,
   View,
-  Alert,
 } from "react-native";
 import {
   actions,
@@ -21,17 +20,19 @@ import {
 } from "react-native-pell-rich-editor";
 import { Assets } from "../../Assets";
 import * as ImagePicker from "expo-image-picker";
-import Constants from "expo-constants";
 import { Feather } from "@expo/vector-icons";
 import {
   backColor,
   backColorTwo,
   lightModeTextHardColor,
   lightModeTextLightColor,
-  primaryColor,
   primaryErrColor,
 } from "../../Styles";
-import { createNote, editNote } from "../../Redux/Notes/ActionCreator";
+import {
+  createNote,
+  editNote,
+  deleteNote,
+} from "../../Redux/Notes/ActionCreator";
 import {
   startDrawerSwipe,
   stopDrawerSwipe,
@@ -41,8 +42,13 @@ import SelectCategorie from "../Categories/SelectCategory";
 import { findCategoryColorAndNameUsingId, toast } from "../../Functions/index";
 import Dilogue from "../../Components/Dilogue";
 import InsertLink from "./InsertLink";
+import "react-native-get-random-values";
+import { v4 as uuidv4 } from "uuid";
+import { connectActionSheet } from "@expo/react-native-action-sheet";
 
 const { strikeThrough, video, html, emoji } = Assets;
+
+const newNoteId = uuidv4();
 
 const mapStateToProps = (state) => {
   return {
@@ -56,6 +62,7 @@ const mapDispatchToProps = (dispatch) => ({
   editNote: (note, index) => dispatch(editNote(note, index)),
   startDrawerSwipe: () => dispatch(startDrawerSwipe()),
   stopDrawerSwipe: () => dispatch(stopDrawerSwipe()),
+  deleteNote: (index, note) => dispatch(deleteNote(index, note)),
 });
 
 class Editor extends React.Component {
@@ -65,7 +72,6 @@ class Editor extends React.Component {
   constructor(props) {
     super(props);
     const { isNew, data, index, categoryId } = this.props.route.params;
-    let disabled = false;
     let title = ``;
     let initialHTML = ``;
     let catId = 0;
@@ -76,7 +82,6 @@ class Editor extends React.Component {
         props.categories,
         categoryId
       );
-      disabled = false;
       catId = categoryId;
       catName = catData.name;
       categoryColor = catData.color;
@@ -85,7 +90,6 @@ class Editor extends React.Component {
         props.categories,
         data.categoryId
       );
-      disabled = true;
       title = data.title;
       initialHTML = data.content;
       catId = data.categoryId;
@@ -99,7 +103,6 @@ class Editor extends React.Component {
     this.state = {
       theme,
       contentStyle,
-      disabled,
       title,
       categoryName: catName,
       categoryId: catId,
@@ -153,7 +156,9 @@ class Editor extends React.Component {
 
   getPermission = async () => {
     if (Platform.OS !== "web") {
-      const { status } = await ImagePicker.requestCameraRollPermissionsAsync();
+      const {
+        status,
+      } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== "granted") {
         alert("Sorry, we need camera roll permissions to make this work!");
       } else {
@@ -169,34 +174,19 @@ class Editor extends React.Component {
       // aspect: [4, 3],
       quality: 1,
       base64: true,
-      // allowsMultipleSelection: true,
+      allowsMultipleSelection: true,
       // exif: true,
     });
 
-    // result.cancelled ? null : this.richText.current?.insertImage(result.uri);
     result.cancelled
       ? null
       : this.richText.current?.insertImage(
           `data:${result.type}/*;base64,${result.base64}`
         );
 
-    // console.log("HERE IS IMAGE", result);
-    let html = await this.richText.current?.getContentHtml();
-    // console.log(html);
-
-    if (!result.cancelled) {
-      this.setState({ image: result.uri });
-    }
-  };
-
-  onPressAddImage = () => {
-    // insert URL
-    this.richText.current?.insertImage(
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/100px-React-icon.svg.png"
-    );
-    // insert base64
-    // this.richText.current?.insertImage(`data:${image.mime};base64,${image.data}`);
-    // this.richText.current?.blurContentEditor();
+    // this.richText.current?.insertVideo(
+    //   "https://mdn.github.io/learning-area/html/multimedia-and-embedding/video-and-audio-content/rabbit320.mp4"
+    // );
   };
 
   handleChange = (html) => {
@@ -215,16 +205,6 @@ class Editor extends React.Component {
     this.setState({ emojiVisible: !emojiVisible });
   };
 
-  insertVideo = () => {
-    this.richText.current?.insertVideo(
-      "https://mdn.github.io/learning-area/html/multimedia-and-embedding/video-and-audio-content/rabbit320.mp4"
-    );
-  };
-
-  onDisabled = () => {
-    this.setState({ disabled: !this.state.disabled });
-  };
-
   insertHTML = () => {
     this.richText.current?.insertHTML(
       `<span style="color: blue; padding:0 10px;">HTML</span>`
@@ -241,7 +221,7 @@ class Editor extends React.Component {
   };
 
   save = async () => {
-    const { isNew, data, index } = this.props.route.params;
+    const { isNew, data, index, categoryId } = this.props.route.params;
 
     // Get the data here and call the interface to save the data
     let html = await this.richText.current?.getContentHtml();
@@ -250,23 +230,21 @@ class Editor extends React.Component {
       toast("Nothing to save!");
       return;
     }
-    const currentDate = new Date();
 
     const note = {
       title: this.state.title,
       content: html,
       desc: "",
-      createdDate: currentDate.toDateString(),
-      createdTimeMiliSec: currentDate.getTime(),
+      createdDate: isNew ? new Date() : data.createdDate,
       isLocked: isNew ? false : data.isLocked,
       categoryId: this.state.categoryId,
-      updatedDate: currentDate.toDateString(),
-      updatedTimeMiliSec: currentDate.getTime(),
+      updatedDate: isNew ? null : new Date(),
+      _id: isNew ? newNoteId : data._id,
     };
 
     // const date = new Date(item.updateDate.seconds * 1000).toDateString();
     isNew ? this.props.createNote(note) : this.props.editNote(note, index);
-    this.setState({ disabled: !this.state.disabled, changeMade: false });
+    this.setState({ changeMade: false });
     // console.log(note);
   };
 
@@ -296,11 +274,39 @@ class Editor extends React.Component {
     });
   };
 
+  openOptionsSheet = () => {
+    const options = ["Delete", "Share", "Cancel"];
+    const destructiveButtonIndex = 0;
+    const cancelButtonIndex = 2;
+    const textStyle = { fontWeight: "700" };
+    const { data, index } = this.props.route.params;
+
+    this.props.showActionSheetWithOptions(
+      {
+        options,
+        cancelButtonIndex,
+        destructiveButtonIndex,
+        textStyle,
+      },
+      (buttonIndex) => {
+        if (buttonIndex === 0) {
+          this.props.deleteNote(index, data);
+          this.props.navigation.goBack();
+          return;
+        }
+        if (buttonIndex === 1) {
+          console.log("Sharing");
+          return;
+        }
+        // Do something here depending on the button index selected
+      }
+    );
+  };
+
   render() {
     const {
       contentStyle,
       theme,
-      disabled,
       title,
       changeMade,
       categoryName,
@@ -348,77 +354,51 @@ class Editor extends React.Component {
             <TouchableOpacity
               style={{ paddingHorizontal: 10 }}
               onPress={() => {
-                this.onDisabled();
+                changeMade ? this.save() : toast("Saved");
               }}
             >
               <Text style={styles.topBtnTxt}>
-                {disabled ? "Edit" : "Pause"}
+                {changeMade ? "Save" : "Saved"}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={{ paddingHorizontal: 10 }}
+              style={{ paddingLeft: 10 }}
               onPress={() => {
-                isNew ? this.save() : changeMade ? this.save() : null;
+                this.openOptionsSheet();
               }}
             >
-              <Text style={styles.topBtnTxt}>
-                {changeMade ? "Save" : isNew ? "Save" : "Saved"}
-              </Text>
+              <Feather size={20} color="#333" name="more-vertical" />
             </TouchableOpacity>
           </View>
         </View>
         <ScrollView keyboardDismissMode={"none"}>
-          {disabled ? (
-            <View
+          <TouchableOpacity
+            onPress={() => {
+              this.setState({ selectCategoryModalVisible: true });
+            }}
+            style={[
+              styles.categoryView,
+              {
+                borderColor: categoryId
+                  ? categoryColor
+                  : lightModeTextLightColor,
+              },
+            ]}
+          >
+            <Text
               style={[
-                styles.categoryView,
+                styles.categoryTxt,
                 {
-                  borderColor: categoryId
-                    ? categoryColor
-                    : lightModeTextLightColor,
+                  color: categoryId ? categoryColor : lightModeTextLightColor,
                 },
               ]}
             >
-              <Text
-                style={[
-                  styles.categoryTxt,
-                  {
-                    color: categoryId ? categoryColor : lightModeTextLightColor,
-                  },
-                ]}
-              >
-                {categoryName}
-              </Text>
-            </View>
-          ) : (
-            <TouchableOpacity
-              onPress={() => {
-                this.setState({ selectCategoryModalVisible: true });
-              }}
-              style={[
-                styles.categoryView,
-                {
-                  borderColor: categoryId
-                    ? categoryColor
-                    : lightModeTextLightColor,
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.categoryTxt,
-                  {
-                    color: categoryId ? categoryColor : lightModeTextLightColor,
-                  },
-                ]}
-              >
-                {categoryName}
-              </Text>
-            </TouchableOpacity>
-          )}
+              {categoryName}
+            </Text>
+          </TouchableOpacity>
           <TextInput
             style={styles.titleInput}
-            editable={!disabled}
+            editable={true}
             placeholderTextColor={placeholderColor}
             placeholder={"Title"}
             value={title}
@@ -431,7 +411,7 @@ class Editor extends React.Component {
           />
           <RichEditor
             initialFocus={false}
-            disabled={disabled}
+            disabled={false}
             editorStyle={contentStyle} // default light style
             containerStyle={themeBg}
             ref={this.richText}
@@ -456,13 +436,13 @@ class Editor extends React.Component {
               themeBg,
             ]}
             editor={this.richText}
-            disabled={disabled}
+            disabled={false}
             iconTint={color}
             selectedIconTint={"#2095F2"}
             disabledIconTint={"#8b8b8b"}
-            onPressAddImage={this.getPermission}
+            onPressAddImage={() => this.getPermission(true)}
             onInsertLink={this.onInsertLink}
-            iconSize={50} // default 50
+            iconSize={45} // default 50
             actions={[
               // "insertVideo",
               ...defaultActions,
@@ -470,25 +450,37 @@ class Editor extends React.Component {
               actions.heading1,
               actions.heading3,
               actions.heading4,
-              "insertHTML",
+              // "insertHTML",
             ]} // default defaultActions
             iconMap={{
               [actions.setStrikethrough]: strikeThrough,
               [actions.heading1]: ({ tintColor }) => (
-                <Text style={[styles.h1Text, { color: tintColor }]}>H1</Text>
+                <Text
+                  style={[styles.h1Text, { color: tintColor, fontSize: 22 }]}
+                >
+                  H1
+                </Text>
               ),
               [actions.heading3]: ({ tintColor }) => (
-                <Text style={[styles.h1Text, { color: tintColor }]}>H2</Text>
+                <Text
+                  style={[styles.h1Text, { color: tintColor, fontSize: 16 }]}
+                >
+                  H2
+                </Text>
               ),
               [actions.heading4]: ({ tintColor }) => (
-                <Text style={[styles.h1Text, { color: tintColor }]}>H3</Text>
+                <Text
+                  style={[styles.h1Text, { color: tintColor, fontSize: 14 }]}
+                >
+                  H3
+                </Text>
               ),
               insertHTML: html,
               insertVideo: video,
             }}
             // insertEmoji={this.handleEmoji}
-            insertHTML={this.insertHTML}
-            // insertVideo={this.getPermission}
+            // insertHTML={this.insertHTML}
+            // insertVideo={() => this.getPermission(false)}
           />
           {/* {emojiVisible && <EmojiView onSelect={this.insertEmoji} />} */}
         </KeyboardAvoidingView>
@@ -545,7 +537,12 @@ class Editor extends React.Component {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Editor);
+const actionSheetConnectedEditor = connectActionSheet(Editor);
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(actionSheetConnectedEditor);
 
 const styles = StyleSheet.create({
   categoryView: {
@@ -563,7 +560,8 @@ const styles = StyleSheet.create({
   },
   topBtnsView: {
     flexDirection: "row",
-    paddingHorizontal: 20,
+    paddingLeft: 20,
+    paddingRight: 15,
     paddingVertical: 15,
     borderBottomColor: "#eee",
     borderBottomWidth: 0.7,

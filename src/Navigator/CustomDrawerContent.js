@@ -69,8 +69,8 @@ export default function CustomDrawerContent(props) {
                   <Text
                     style={{
                       fontSize: 17,
-                      fontWeight: sortNotes.id === -11 ? "700" : "600",
-                      color: sortNotes.id === -11 ? primaryColor : "#000",
+                      fontWeight: sortNotes._id === -11 ? "700" : "600",
+                      color: sortNotes._id === -11 ? primaryColor : "#000",
                     }}
                   >
                     All Notes
@@ -144,7 +144,7 @@ export default function CustomDrawerContent(props) {
             <TouchableNativeFeedback
               onPress={() => {
                 setSelectedCategory(index);
-                dispatch(sortNote(item.id, item.name));
+                dispatch(sortNote(item._id, item.name));
                 props.navigation.toggleDrawer();
               }}
             >
@@ -157,8 +157,8 @@ export default function CustomDrawerContent(props) {
                 <Text
                   style={{
                     fontSize: 17,
-                    fontWeight: sortNotes.id === item.id ? "700" : "600",
-                    color: sortNotes.id === item.id ? primaryColor : "#000",
+                    fontWeight: sortNotes._id === item._id ? "700" : "600",
+                    color: sortNotes._id === item._id ? primaryColor : "#000",
                   }}
                 >
                   {item.name}

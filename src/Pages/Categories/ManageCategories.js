@@ -17,32 +17,7 @@ import {
 } from "../../Redux/DrawerSwipe/ActionCreator";
 import { deleteCategory } from "../../Redux/Categories/ActionCreator";
 import { useActionSheet } from "@expo/react-native-action-sheet";
-
-function openActionSheet(
-  showActionSheetWithOptions,
-  dispatch,
-  editingCategoryIndex
-) {
-  // Same interface as https://facebook.github.io/react-native/docs/actionsheetios.html
-
-  const options = ["Delete", "Cancel"];
-  const destructiveButtonIndex = 0;
-  const cancelButtonIndex = 1;
-
-  showActionSheetWithOptions(
-    {
-      options,
-      cancelButtonIndex,
-      destructiveButtonIndex,
-    },
-    (buttonIndex) => {
-      if (buttonIndex === 0) {
-        dispatch(deleteCategory(editingCategoryIndex));
-      }
-      // Do something here depending on the button index selected
-    }
-  );
-}
+import CustomActivityIndicator from "../../Components/CustomActivityIndicator";
 
 export default function ManageCategories(props) {
   // redux state
@@ -60,6 +35,29 @@ export default function ManageCategories(props) {
   const dispatch = useDispatch();
   const { showActionSheetWithOptions } = useActionSheet();
 
+  const openActionSheet = (categoryIndex, categoryId) => {
+    // Same interface as https://facebook.github.io/react-native/docs/actionsheetios.html
+
+    const options = ["Delete", "Cancel"];
+    const destructiveButtonIndex = 0;
+    const cancelButtonIndex = 1;
+
+    showActionSheetWithOptions(
+      {
+        options,
+        cancelButtonIndex,
+        destructiveButtonIndex,
+      },
+      (buttonIndex) => {
+        if (buttonIndex === 0) {
+          dispatch(deleteCategory(categoryIndex, categoryId));
+          console.log({ categoryIndex, categoryId });
+        }
+        // Do something here depending on the button index selected
+      }
+    );
+  };
+
   useEffect(() => {
     dispatch(stopDrawerSwipe());
     // returned function will be called on component unmount
@@ -70,6 +68,7 @@ export default function ManageCategories(props) {
 
   return (
     <SafeAreaView>
+      {categories.isLoading ? <CustomActivityIndicator /> : null}
       <View
         style={{ height: "100%", width: "100%", backgroundColor: backColor }}
       >
@@ -98,11 +97,7 @@ export default function ManageCategories(props) {
               // console.log(name, "Pressed", id);
             }}
             onLongPress={(name, id, color, index, count) => {
-              openActionSheet(
-                showActionSheetWithOptions,
-                dispatch,
-                editingCategoryIndex
-              );
+              openActionSheet(index, id);
               setEditingCategoryIndex(index);
               setCategoryName(name);
               setCategoryColor(color);

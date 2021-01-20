@@ -1,5 +1,5 @@
 import { Feather } from "@expo/vector-icons";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -16,127 +16,23 @@ import {
   lightModeTextLightColor,
   primaryColor,
   primaryColorTwo,
-  SCREEN_WIDTH,
 } from "../../Styles/index";
 import { useSelector, useDispatch } from "react-redux";
 import { toggleLockNote, deleteNote } from "../../Redux/Notes/ActionCreator";
-import HTML from "react-native-render-html";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import Dilogue from "../../Components/Dilogue";
 import * as LocalAuthentication from "expo-local-authentication";
 import { resetSort } from "../../Redux/SortNotes/ActionCreator";
-
-function renderNote(
-  item,
-  index,
-  props,
-  showActionSheet,
-  dispatch,
-  dilogueFuncs
-) {
-  return (
-    <TouchableOpacity
-      delayLongPress={250}
-      onLongPress={() => {
-        openActionSheet(showActionSheet, item.isLocked, dilogueFuncs, index);
-      }}
-      onPress={() => {
-        item.isLocked
-          ? scanFingerPrint(props, item, index, true, dispatch)
-          : props.navigation.navigate("Editor", {
-              isNew: false,
-              data: item,
-              index,
-              categoryId: null,
-            });
-        dispatch(resetSort());
-      }}
-      style={styles.noteCard}
-    >
-      <View style={{ flexDirection: "column" }}>
-        <Text style={styles.noteHeader}>{item.title}</Text>
-        <Text style={[styles.noteDesc, { fontSize: 12 }]}>
-          {item.createdDate}
-        </Text>
-      </View>
-      {item.isLocked ? (
-        <Feather name="lock" size={14} color={primaryColor} />
-      ) : (
-        <Text> </Text>
-      )}
-    </TouchableOpacity>
-  );
-}
-
-function openActionSheet(showActionSheet, isLocked, dilogueFuncs, index) {
-  // Same interface as https://facebook.github.io/react-native/docs/actionsheetios.html
-
-  const options = ["Delete", isLocked ? "Unlock" : "Lock", "Cancel"];
-  const destructiveButtonIndex = 0;
-  const cancelButtonIndex = 2;
-
-  showActionSheet(
-    {
-      options,
-      cancelButtonIndex,
-      destructiveButtonIndex,
-    },
-    (buttonIndex) => {
-      switch (buttonIndex) {
-        case 0:
-          dilogueFuncs.setShowDilogue(true);
-          dilogueFuncs.setDilogueLineOne("Delete note?");
-          dilogueFuncs.setDilogueActionBtn("Delete");
-          dilogueFuncs.setDilogueBackColor(backColorTwo);
-          dilogueFuncs.setCurrentNoteIndex(index);
-          break;
-        case 1:
-          dilogueFuncs.setShowDilogue(true);
-          dilogueFuncs.setDilogueLineOne(
-            isLocked ? "Unlock note?" : "Lock Note?"
-          );
-          dilogueFuncs.setDilogueActionBtn(isLocked ? "Unlock" : "Lock");
-          dilogueFuncs.setDilogueBackColor(backColorTwo);
-          dilogueFuncs.setCurrentNoteIndex(index);
-          break;
-      }
-      // Do something here depending on the button index selected
-    }
-  );
-}
-
-const scanFingerPrint = async (props, item, index, mode, dispatch) => {
-  try {
-    let results = await LocalAuthentication.authenticateAsync({
-      cancelLabel: "Cancel",
-      disableDeviceFallback: true,
-      fallbackLabel: "Use Pin",
-    });
-    if (results.success) {
-      if (mode) {
-        props.navigation.navigate("Editor", {
-          isNew: false,
-          data: item,
-          index,
-          categoryId: null,
-        });
-        dispatch(resetSort());
-      } else {
-        dispatch(toggleLockNote(index));
-      }
-    } else {
-      // console.log("Not Authenticated");
-    }
-  } catch (e) {
-    toast("Clean the scanner and try again");
-    console.log("Error in scanning fingerprint", e);
-  }
-};
+import {
+  findCategoryColorAndNameUsingId,
+  getDateString,
+} from "../../Functions";
 
 export default function Notes(props) {
   // redux state
   const notes = useSelector((state) => state.notes);
   const sortingData = useSelector((state) => state.sortNotes);
+  const categories = useSelector((state) => state.categories);
   // local state
   const [showDilogue, setShowDilogue] = useState(false);
   const [dilogueLineOne, setDilogueLineOne] = useState("");
@@ -148,10 +44,10 @@ export default function Notes(props) {
   // const [sortedNotes, setSortedNotes] = useState(notes.data);
 
   const sortedNotes =
-    sortingData.id == -11
+    sortingData._id == -11
       ? notes.data
-      : notes.data.filter((it) => {
-          return it.categoryId == sortingData.id;
+      : notes.data.filter((item) => {
+          return item.categoryId == sortingData._id;
         });
 
   // redux action dispatcher
@@ -159,15 +55,109 @@ export default function Notes(props) {
   // actionsheet hook
   const { showActionSheetWithOptions } = useActionSheet();
 
-  // useEffect(() => {
-  //   setSortedNotes(
-  //     sortingData.id == -11
-  //       ? notes.data
-  //       : notes.data.filter((it) => {
-  //           return it.categoryId == sortingData.id;
-  //         })
-  //   );
-  // }, [notes]);
+  const openActionSheet = (note, index) => {
+    const options = ["Delete", note.isLocked ? "Unlock" : "Lock", "Cancel"];
+    const destructiveButtonIndex = 0;
+    const cancelButtonIndex = 2;
+
+    showActionSheetWithOptions(
+      {
+        options,
+        cancelButtonIndex,
+        destructiveButtonIndex,
+      },
+      (buttonIndex) => {
+        switch (buttonIndex) {
+          case 0:
+            setShowDilogue(true);
+            setDilogueLineOne("Delete note?");
+            setDilogueActionBtn("Delete");
+            setDilogueBackColor(backColorTwo);
+            setCurrentNoteIndex(index);
+            setCurrentNote(note);
+            break;
+          case 1:
+            setShowDilogue(true);
+            setDilogueLineOne(note.isLocked ? "Unlock note?" : "Lock Note?");
+            setDilogueActionBtn(note.isLocked ? "Unlock" : "Lock");
+            setDilogueBackColor(backColorTwo);
+            setCurrentNoteIndex(index);
+            setCurrentNote(note);
+            break;
+        }
+      }
+    );
+  };
+
+  const renderNote = ({ item, index }) => {
+    const category = findCategoryColorAndNameUsingId(
+      categories,
+      item.categoryId
+    );
+
+    return (
+      <TouchableOpacity
+        onLongPress={() => {
+          openActionSheet(item, index);
+        }}
+        onPress={() => {
+          item.isLocked
+            ? scanFingerPrint(item, index, true)
+            : props.navigation.navigate("Editor", {
+                isNew: false,
+                data: item,
+                index,
+                categoryId: null,
+              });
+          dispatch(resetSort());
+        }}
+        style={styles.noteCard}
+      >
+        <View
+          style={[styles.noteCatColor, { backgroundColor: category.color }]}
+        ></View>
+        <View style={styles.noteCardContent}>
+          <View style={{ flexDirection: "column" }}>
+            <Text style={styles.noteHeader}>{item.title}</Text>
+            <Text style={[styles.noteDesc, { fontSize: 12 }]}>
+              {new Date(getDateString(item.createdDate)).toDateString()}
+            </Text>
+          </View>
+          {item.isLocked ? (
+            <Feather name="lock" size={14} color={primaryColor} />
+          ) : null}
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  const scanFingerPrint = async (item, index, mode) => {
+    try {
+      let results = await LocalAuthentication.authenticateAsync({
+        cancelLabel: "Cancel",
+        disableDeviceFallback: false,
+        fallbackLabel: "Use Pin",
+      });
+      if (results.success) {
+        if (mode) {
+          props.navigation.navigate("Editor", {
+            isNew: false,
+            data: item,
+            index,
+            categoryId: null,
+          });
+          dispatch(resetSort());
+        } else {
+          dispatch(toggleLockNote(index, false, item));
+        }
+      } else {
+        // console.log("Not Authenticated");
+      }
+    } catch (e) {
+      toast("Clean the scanner and try again");
+      console.log("Error in scanning fingerprint", e);
+    }
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: backColor }}>
@@ -189,24 +179,7 @@ export default function Notes(props) {
           style={{ backgroundColor: backColor, paddingTop: 10 }}
           data={sortedNotes}
           keyExtractor={(item, index) => index.toString()}
-          renderItem={({ item, index }) =>
-            renderNote(
-              item,
-              index,
-              props,
-              showActionSheetWithOptions,
-              dispatch,
-              {
-                setShowDilogue,
-                setDilogueLineOne,
-                setDilogueLineTwo,
-                setDilogueActionBtn,
-                setDilogueBackColor,
-                setCurrentNoteIndex,
-                setCurrentNote,
-              }
-            )
-          }
+          renderItem={renderNote}
         />
       )}
       <TouchableOpacity
@@ -216,9 +189,9 @@ export default function Notes(props) {
             isNew: true,
             data: null,
             index: null,
-            categoryId: sortingData.id == -11 ? 0 : sortingData.id,
+            categoryId: sortingData._id == -11 ? 0 : sortingData._id,
           });
-          dispatch(resetSort());
+          // dispatch(resetSort());
         }}
       >
         <Feather name="plus" size={25} color={backColorTwo} />
@@ -246,25 +219,21 @@ export default function Notes(props) {
               onPress={() => {
                 switch (dilogueActionBtn) {
                   case "Lock":
-                    dispatch(toggleLockNote(currentNoteIndex));
+                    dispatch(
+                      toggleLockNote(currentNoteIndex, true, currentNote)
+                    );
                     setShowDilogue(false);
                     break;
 
                   case "Unlock":
                     // console.log("Unlocking");
-                    scanFingerPrint(
-                      props,
-                      currentNote,
-                      currentNoteIndex,
-                      false,
-                      dispatch
-                    );
-                    // dispatch(toggleLockNote(currentNoteIndex));
+                    scanFingerPrint(currentNote, currentNoteIndex, false);
+                    // dispatch(toggleLockNote(currentNoteIndex, false, currentNote));
                     setShowDilogue(false);
                     break;
 
                   case "Delete":
-                    dispatch(deleteNote(currentNoteIndex));
+                    dispatch(deleteNote(currentNoteIndex, currentNote));
                     setShowDilogue(false);
                     break;
                 }
@@ -305,9 +274,8 @@ const styles = StyleSheet.create({
     marginBottom: 18,
     marginHorizontal: 10,
     borderRadius: 10,
-    padding: 20,
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
   },
   noteHeader: {
     fontSize: 17,
@@ -322,13 +290,26 @@ const styles = StyleSheet.create({
   addNoteBtnView: {
     backgroundColor: primaryColorTwo,
     borderRadius: 35,
-    height: 62,
-    width: 62,
+    height: 58,
+    width: 58,
     position: "absolute",
     zIndex: 1000,
-    bottom: 10,
-    right: 10,
+    bottom: 15,
+    right: 15,
     alignItems: "center",
     justifyContent: "center",
+    elevation: 3,
+  },
+  noteCatColor: {
+    width: 8,
+    borderBottomLeftRadius: 10,
+    borderTopLeftRadius: 10,
+  },
+  noteCardContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 20,
+    flex: 1,
   },
 });

@@ -1,23 +1,10 @@
 import { Feather } from "@expo/vector-icons";
-import React, { useRef } from "react";
-import { Modal, View, Text, Image, StyleSheet, ScrollView } from "react-native";
-import { backColor, SCREEN_WIDTH } from "../../Styles";
-import Login from "../Auth/Login";
-import Signup from "../Auth/Signup";
-import ResetPassword from "../Auth/ResetPassword";
-
-function scrollAuthPage(scrollRef, scrollValue) {
-  scrollRef.current.scrollTo({
-    animated: true,
-    y: 0,
-    x: scrollValue,
-    duration: 1000,
-  });
-}
+import React from "react";
+import { Modal, View, Text, StyleSheet } from "react-native";
+import { useSelector } from "react-redux";
 
 export default function ProfileModal({ visible, closeModal }) {
-  const scrollRef = useRef();
-
+  const auth = useSelector((state) => state.auth);
   return (
     <Modal
       transparent
@@ -44,38 +31,7 @@ export default function ProfileModal({ visible, closeModal }) {
             style={{ paddingHorizontal: 10 }}
           />
         </View>
-        <ScrollView
-          ref={scrollRef}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          scrollEnabled={false}
-          style={{ flex: 1, backgroundColor: backColor }}
-        >
-          <View style={{ width: SCREEN_WIDTH }}>
-            <Login
-              onSignupPress={() => {
-                scrollAuthPage(scrollRef, SCREEN_WIDTH);
-              }}
-              onForgotPassPress={() => {
-                scrollAuthPage(scrollRef, SCREEN_WIDTH * 2);
-              }}
-            />
-          </View>
-          <View style={{ width: SCREEN_WIDTH }}>
-            <Signup
-              onLoginPress={() => {
-                scrollAuthPage(scrollRef, 0);
-              }}
-            />
-          </View>
-          <View style={{ width: SCREEN_WIDTH }}>
-            <ResetPassword
-              onBackPress={() => {
-                scrollAuthPage(scrollRef, 0);
-              }}
-            />
-          </View>
-        </ScrollView>
+        <Text>{JSON.stringify(auth, null, 4)}</Text>
       </View>
     </Modal>
   );

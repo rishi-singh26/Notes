@@ -8,6 +8,7 @@ import { Notes } from "./Notes/Notes";
 import { Categories } from "./Categories/Categories";
 import { SortNotes } from "./SortNotes/SortNptes";
 import { DrawerSwipe } from "./DrawerSwipe/DrawerSwipe";
+import { Auth } from "./Auth/Auth";
 
 export const ConfigureStore = () => {
   const config = {
@@ -22,6 +23,7 @@ export const ConfigureStore = () => {
       categories: Categories,
       sortNotes: SortNotes,
       drawerSwipe: DrawerSwipe,
+      auth: Auth,
     }),
     applyMiddleware(thunk)
   );

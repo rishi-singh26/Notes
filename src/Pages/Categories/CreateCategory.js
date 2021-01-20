@@ -82,7 +82,7 @@ export default function CreateCategory({
                     editCategory(
                       {
                         name: categoryName,
-                        id: editingCategoryId,
+                        _id: editingCategoryId,
                         color: categoryColor,
                         count: 0,
                       },
@@ -92,7 +92,7 @@ export default function CreateCategory({
                 : dispatch(
                     createCategory({
                       name: categoryName,
-                      id: uuidv4(),
+                      _id: uuidv4(),
                       color: categoryColor,
                       count: 0,
                     })

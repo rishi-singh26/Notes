@@ -50,7 +50,7 @@ export default function InsertLink({
           autoCapitalize={"none"}
           value={linkData}
           onChangeText={(text) => {
-            text.length > 8 ? setDataChange(text) : null;
+            setDataChange(text);
           }}
           textContentType="URL"
         />
@@ -73,7 +73,7 @@ export default function InsertLink({
               if (result || resultTwo) {
                 closeDilogue();
                 setTitleChange("");
-                setDataChange("https://");
+                setDataChange("");
                 submitLink(linkTitle, linkData);
               } else {
                 toast("Enter a valid url");

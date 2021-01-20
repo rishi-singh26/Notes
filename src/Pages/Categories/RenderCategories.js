@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   FlatList,
   View,
@@ -6,16 +6,8 @@ import {
   Text,
   StyleSheet,
 } from "react-native";
-import {
-  backColor,
-  backColorTwo,
-  green,
-  lightModeBtnBackColor,
-  lightModeTextLightColor,
-} from "../../Styles";
+import { backColorTwo } from "../../Styles";
 import Dot from "../../Components/Dot";
-import { Feather } from "@expo/vector-icons";
-import CreateCategory from "./CreateCategory";
 
 export default function RenderCategories({ data, onPress, onLongPress }) {
   return (
@@ -37,10 +29,10 @@ export default function RenderCategories({ data, onPress, onLongPress }) {
                 styles.category,
               ]}
               onPress={() => {
-                onPress(item.name, item.id, item.color, index, item.count);
+                onPress(item.name, item._id, item.color, index, item.count);
               }}
               onLongPress={() => {
-                onLongPress(item.name, item.id, item.color, index, item.count);
+                onLongPress(item.name, item._id, item.color, index, item.count);
               }}
             >
               <View style={{ flexDirection: "row", alignItems: "center" }}>

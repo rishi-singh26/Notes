@@ -5,7 +5,6 @@ export const Categories = (
     data: [],
     isLoading: false,
     errMess: null,
-    deleted: [],
   },
   action
 ) => {
@@ -14,9 +13,7 @@ export const Categories = (
       return {
         ...state,
         data: [action.payload, ...state.data],
-        isLoading: false,
         errMess: null,
-        deleted: [],
       };
 
     case ActionTypes.EDIT_CATEGORY:
@@ -29,23 +26,36 @@ export const Categories = (
       return {
         ...state,
         data: currentCategoriesToBeEdited,
-        isLoading: false,
         errMess: null,
-        deleted: [],
       };
 
     case ActionTypes.DELETE_CATEGORY:
       let currentCategoriesToBeDeleted = state.data;
-
-      const deletedCategory = currentCategoriesToBeDeleted[action.payload];
-
       currentCategoriesToBeDeleted.splice(action.payload, 1);
       return {
         ...state,
         data: currentCategoriesToBeDeleted,
-        isLoading: false,
         errMess: null,
-        deleted: [...state.deleted, deletedCategory],
+      };
+
+    case ActionTypes.CATEGORIES_LOADING:
+      return {
+        ...state,
+        isLoading: true,
+      };
+
+    case ActionTypes.CATEGORIES_SUCCESS:
+      return {
+        ...state,
+        data: action.payload,
+        isLoading: false,
+      };
+
+    case ActionTypes.CATEGORIES_ERR:
+      return {
+        ...state,
+        isLoading: false,
+        errMess: action.payload,
       };
 
     default:

@@ -1,34 +1,43 @@
 import React, { useState } from "react";
 import {
-  SafeAreaView,
   View,
   Text,
   TouchableOpacity,
   TextInput,
   StyleSheet,
 } from "react-native";
-import {
-  backColor,
-  backColorTwo,
-  lightModeBtnBackColor,
-  lightModeTextHardColor,
-  lightModeTextLightColor,
-  primaryColor,
-} from "../../Styles";
 import { Feather } from "@expo/vector-icons";
+import { primaryColor, primaryErrColor } from "../../../Styles/index";
+import { useSelector, useDispatch } from "react-redux";
+import { loginUser } from "../../../Redux/Auth/ActionCreator";
+import { validateEmail } from "../../../Functions/index";
 
 export default function Login(props) {
+  // Global state
+  const auth = useSelector((state) => state.auth);
   // local state
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
   const [shouldShowPassword, setShouldShowPassword] = useState(true);
+  const [emailErr, setEmailErr] = useState("");
+
+  const dispatch = useDispatch();
+
+  const loginUserOnDataValidation = (username, password) => {
+    if (!validateEmail(username)) {
+      setEmailErr("Enter a valid email");
+      return;
+    }
+    setEmailErr("");
+    dispatch(loginUser({ username, password }));
+  };
 
   return (
-    <View style={{ backgroundColor: backColor }}>
+    <View>
       <View style={styles.header}>
         <Feather
-          color={backColorTwo}
-          size={20}
+          color={"#fff"}
+          size={24}
           name="file-text"
           style={styles.iconStyle}
         />
@@ -45,6 +54,9 @@ export default function Login(props) {
         keyboardType="email-address"
         textContentType="emailAddress"
       />
+      {emailErr.length > 0 ? (
+        <Text style={styles.errTxt}>{emailErr}</Text>
+      ) : null}
       <View style={[styles.textInput, styles.textInputView]}>
         <TextInput
           placeholder="Password"
@@ -57,7 +69,7 @@ export default function Login(props) {
           secureTextEntry={shouldShowPassword}
         />
         <Feather
-          color={lightModeTextLightColor}
+          color={"#333"}
           size={18}
           name={shouldShowPassword ? "eye" : "eye-off"}
           onPress={() => {
@@ -65,7 +77,10 @@ export default function Login(props) {
           }}
         />
       </View>
-      <TouchableOpacity style={styles.loginBtn}>
+      <TouchableOpacity
+        onPress={() => loginUserOnDataValidation(email, pass)}
+        style={styles.loginBtn}
+      >
         <Text style={styles.loginBtnTxt}>Login</Text>
       </TouchableOpacity>
       <View style={styles.btnsView}>
@@ -94,16 +109,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   forgotPasswordBtn: {
-    color: lightModeTextHardColor,
+    color: "#000",
     alignSelf: "center",
     marginTop: 15,
     marginHorizontal: 5,
     paddingRight: 10,
-    borderRightColor: lightModeTextHardColor,
+    borderRightColor: "#000",
     borderRightWidth: 1,
   },
   signUpBtn: {
-    color: lightModeTextHardColor,
+    color: "#000",
     alignSelf: "center",
     marginTop: 15,
     marginHorizontal: 5,
@@ -119,14 +134,15 @@ const styles = StyleSheet.create({
     marginTop: 40,
     marginBottom: 50,
     flexDirection: "row",
+    alignItems: "center",
   },
   headerText: {
-    fontSize: 25,
+    fontSize: 27,
     fontWeight: "700",
-    color: lightModeTextHardColor,
+    color: "#000",
   },
   textInput: {
-    backgroundColor: lightModeBtnBackColor,
+    backgroundColor: "#f2f2f2",
     marginHorizontal: 25,
     marginVertical: 13,
     borderRadius: 10,
@@ -143,12 +159,18 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     margin: 40,
     alignItems: "center",
-    backgroundColor: lightModeTextHardColor,
+    backgroundColor: "#000",
     borderRadius: 10,
   },
   loginBtnTxt: {
-    color: backColorTwo,
+    color: "#fff",
     fontSize: 17,
     fontWeight: "700",
+  },
+  errTxt: {
+    fontSize: 14,
+    fontWeight: "700",
+    marginHorizontal: 30,
+    color: primaryErrColor,
   },
 });

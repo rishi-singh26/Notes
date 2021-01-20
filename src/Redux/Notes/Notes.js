@@ -24,9 +24,6 @@ export const Notes = (
 
       const index = action.payload.index;
       const note = action.payload.note;
-      let noteToBeEdited = currentNotesToBeEdited[index];
-      note.createdDate = noteToBeEdited.createdDate;
-      note.createdTimeMiliSec = noteToBeEdited.createdTimeMiliSec;
 
       currentNotesToBeEdited.splice(index, 1, note);
       return {
@@ -64,6 +61,26 @@ export const Notes = (
         isLoading: false,
         errMess: null,
         deleted: state.deleted,
+      };
+
+    case ActionTypes.NOTES_LOADING:
+      return {
+        ...state,
+        isLoading: true,
+      };
+
+    case ActionTypes.NOTES_SUCCESS:
+      return {
+        ...state,
+        data: action.payload,
+        isLoading: false,
+      };
+
+    case ActionTypes.NOTES_ERR:
+      return {
+        ...state,
+        isLoading: false,
+        errMess: action.payload,
       };
 
     default:
